@@ -7,10 +7,11 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func SetRoutes() http.Handler {
+func (i *Implementation) setRoutes() http.Handler {
 	r := chi.NewRouter()
 
-	r.With(middleware.Recoverer)
+	r.Use(i.logRequest)
+	r.Use(middleware.Recoverer)
 
 	r.Get("/healthz", statusCheck)
 

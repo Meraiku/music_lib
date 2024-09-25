@@ -1,0 +1,13 @@
+services:
+
+  db:
+    container_name: database_sql
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - ~db:/var/lib/postresql/data
+    env_file:
+      - path: .env
+        required: true

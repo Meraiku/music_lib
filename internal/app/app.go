@@ -62,7 +62,7 @@ func (a *App) initServiceProvicer(_ context.Context) error {
 func (a *App) runRestServer() error {
 
 	s := http.Server{
-		Handler: a.serviceProvider.RestImpl().Router,
+		Handler: a.serviceProvider.RestImpl().Handler(),
 		Addr:    a.serviceProvider.Config().Address(),
 	}
 

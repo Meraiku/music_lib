@@ -6,12 +6,12 @@ import (
 )
 
 type service struct {
-	repo *repo.MusicRepository
+	repo repo.MusicRepository
 	log  *zap.Logger
 }
 
 func NewService(
-	repo *repo.MusicRepository,
+	repo repo.MusicRepository,
 	log *zap.Logger,
 ) *service {
 	return &service{
