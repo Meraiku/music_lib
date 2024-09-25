@@ -7,6 +7,7 @@ import (
 	"github.com/meraiku/music_lib/internal/api/rest/request"
 	"github.com/meraiku/music_lib/internal/converter"
 	"github.com/meraiku/music_lib/internal/model"
+	"github.com/meraiku/music_lib/internal/repo"
 	"go.uber.org/zap"
 )
 
@@ -71,7 +72,18 @@ func (i *Implementation) DeleteSong(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	i.musicService.DeleteSong(r.Context(), converter.FromModifySongRequestToModel(req))
+	if req.ID == "" {
+		i.ErrorJSON(w, http.StatusBadRequest, ErrNoBody.Error())
+		return
+	}
+
+	if err := i.musicService.DeleteSong(r.Context(), converter.FromModifySongRequestToModel(req)); err != nil {
+		i.log.Error("deleting song",
+			zap.Error(err),
+		)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -88,7 +100,23 @@ func (i *Implementation) UpdateSong(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	i.musicService.UpdateSong(r.Context(), converter.FromModifySongRequestToModel(req))
+	if req.ID == "" || req.Group == "" || req.Song == "" {
+		i.ErrorJSON(w, http.StatusBadRequest, ErrNoBody.Error())
+		return
+	}
+
+	if err := i.musicService.UpdateSong(r.Context(), converter.FromModifySongRequestToModel(req)); err != nil {
+		if errors.Is(err, repo.ErrSongIsNotExist) {
+			i.ErrorJSON(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		i.log.Error("updating song",
+			zap.Error(err),
+		)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 }

@@ -24,11 +24,11 @@ func (s *service) PostSong(ctx context.Context, song *model.Song) error {
 }
 
 func (s *service) DeleteSong(ctx context.Context, song *model.Song) error {
-	return nil
+	return s.repo.DeleteSong(ctx, song)
 }
 
 func (s *service) UpdateSong(ctx context.Context, song *model.Song) error {
-	return nil
+	return s.repo.UpdateSong(ctx, song)
 }
 
 func (s *service) GetText(ctx context.Context, song *model.Song, params *model.Parameters) ([]model.Text, error) {
