@@ -1,14 +1,17 @@
 package music
 
-import "go.uber.org/zap"
+import (
+	"github.com/meraiku/music_lib/internal/repo"
+	"go.uber.org/zap"
+)
 
 type service struct {
-	repo repository.Repository
+	repo *repo.MusicRepository
 	log  *zap.Logger
 }
 
 func NewService(
-	repo repository.Repository,
+	repo *repo.MusicRepository,
 	log *zap.Logger,
 ) *service {
 	return &service{
