@@ -7,6 +7,32 @@ import (
 	"go.uber.org/zap"
 )
 
+type responseWriter struct {
+	http.ResponseWriter
+	status      int
+	wroteHeader bool
+}
+
+func wrapResponseWriter(w http.ResponseWriter) *responseWriter {
+	return &responseWriter{ResponseWriter: w}
+}
+
+func (rw *responseWriter) Status() int {
+	return rw.status
+}
+
+func (rw *responseWriter) WriteHeader(code int) {
+	if rw.wroteHeader {
+		return
+	}
+
+	rw.status = code
+	rw.ResponseWriter.WriteHeader(code)
+	rw.wroteHeader = true
+
+	return
+}
+
 func (i *Implementation) logRequest(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -14,7 +40,9 @@ func (i *Implementation) logRequest(next http.Handler) http.Handler {
 
 		start := time.Now()
 
-		next.ServeHTTP(w, r)
+		rw := wrapResponseWriter(w)
+
+		next.ServeHTTP(rw, r)
 
 		done := time.Since(start)
 
@@ -22,7 +50,8 @@ func (i *Implementation) logRequest(next http.Handler) http.Handler {
 			zap.String("from", r.RemoteAddr),
 			zap.String("method", r.Method),
 			zap.String("path", r.URL.String()),
-			zap.Duration("in", done),
+			zap.Int("code", rw.Status()),
+			zap.Duration("latency", done),
 		)
 	})
 }
