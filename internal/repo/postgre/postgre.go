@@ -25,6 +25,10 @@ func New() (*postgre, error) {
 		return nil, err
 	}
 
+	if err := Songs(); err != nil {
+		return nil, err
+	}
+
 	db := bun.NewDB(sqldb, pgdialect.New())
 
 	return &postgre{

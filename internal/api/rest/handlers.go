@@ -6,6 +6,7 @@ import (
 
 	"github.com/meraiku/music_lib/internal/api/rest/request"
 	"github.com/meraiku/music_lib/internal/converter"
+	"github.com/meraiku/music_lib/internal/model"
 	"go.uber.org/zap"
 )
 
@@ -17,12 +18,13 @@ func statusCheck(w http.ResponseWriter, r *http.Request) {
 
 func (i *Implementation) GetSongs(w http.ResponseWriter, r *http.Request) {
 
-	songList, err := i.musicService.GetSongs(r.Context(), nil)
+	songList, err := i.musicService.GetSongs(r.Context(), &model.Parameters{})
 	if err != nil {
 		i.log.Error("music service response",
 			zap.Error(err),
 		)
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	i.JSON(w, http.StatusOK, songList)
@@ -46,7 +48,13 @@ func (i *Implementation) PostSong(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	i.musicService.PostSong(r.Context(), converter.FromAddSongRequestToModel(req))
+	if err := i.musicService.PostSong(r.Context(), converter.FromAddSongRequestToModel(req)); err != nil {
+		i.log.Error("posting song",
+			zap.Error(err),
+		)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusCreated)
 }
