@@ -15,5 +15,17 @@ func (i *Implementation) setRoutes() http.Handler {
 
 	r.Get("/healthz", statusCheck)
 
+	r.Route("/api", func(r chi.Router) {
+
+		r.Route("/songs", func(r chi.Router) {
+			r.Get("/", i.GetSongs)
+			r.Post("/", i.PostSong)
+			r.Put("/", i.UpdateSong)
+			r.Delete("/", i.DeleteSong)
+
+			r.Get("/text", i.GetText)
+		})
+	})
+
 	return r
 }

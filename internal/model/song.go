@@ -2,12 +2,10 @@ package model
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type Song struct {
-	ID          uuid.UUID `json:"id"`
+	ID          string    `json:"id"`
 	Group       string    `json:"group"`
 	Song        string    `json:"song"`
 	ReleaseDate time.Time `json:"releaseDate"`
