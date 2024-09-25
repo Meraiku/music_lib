@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
+
+	"github.com/meraiku/music_lib/internal/config"
 )
 
 type App struct {
@@ -28,6 +31,7 @@ func (a *App) Run() error {
 func (a *App) initDeps(ctx context.Context) error {
 
 	inits := []func(context.Context) error{
+		a.initConfig,
 		a.initServiceProvicer,
 	}
 
@@ -41,6 +45,14 @@ func (a *App) initDeps(ctx context.Context) error {
 	return nil
 }
 
+func (a *App) initConfig(_ context.Context) error {
+	if os.Getenv("ENV") != "" {
+		return nil
+	}
+
+	return config.Load(".env")
+}
+
 func (a *App) initServiceProvicer(_ context.Context) error {
 	a.serviceProvider = newServiceProvider()
 
@@ -51,7 +63,7 @@ func (a *App) runRestServer() error {
 
 	s := http.Server{
 		Handler: a.serviceProvider.RestImpl().Router,
-		Addr:    ":8080",
+		Addr:    a.serviceProvider.Config().Address(),
 	}
 
 	a.serviceProvider.log.Info(fmt.Sprintf("Starting server at %s", s.Addr))
