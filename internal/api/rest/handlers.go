@@ -8,7 +8,6 @@ import (
 	"github.com/meraiku/music_lib/internal/converter"
 	"github.com/meraiku/music_lib/internal/model"
 	"github.com/meraiku/music_lib/internal/repo"
-	"go.uber.org/zap"
 )
 
 func statusCheck(w http.ResponseWriter, r *http.Request) {
@@ -17,117 +16,110 @@ func statusCheck(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("OK"))
 }
 
-func (i *Implementation) GetSongs(w http.ResponseWriter, r *http.Request) {
+func (i *Implementation) GetSongs(w http.ResponseWriter, r *http.Request) error {
 
 	i.log.DebugContext(r.Context(), "Handler started")
 
 	songList, err := i.musicService.GetSongs(r.Context(), &model.Parameters{})
 	if err != nil {
-		i.log.Error("music service response",
-			zap.Error(err),
-		)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return err
 	}
 
-	i.JSON(w, http.StatusOK, songList)
+	i.log.DebugContext(r.Context(), "Handler done")
+
+	return i.JSON(w, http.StatusOK, songList)
 }
 
-func (i *Implementation) PostSong(w http.ResponseWriter, r *http.Request) {
+func (i *Implementation) PostSong(w http.ResponseWriter, r *http.Request) error {
+
+	i.log.DebugContext(r.Context(), "Handler started")
 
 	var req request.AddSongRequest
 
 	if err := decodeIntoStruct(r, &req); err != nil {
 		if errors.Is(err, ErrNoBody) {
-			w.WriteHeader(http.StatusBadRequest)
-			i.ErrorJSON(w, http.StatusBadRequest, err.Error())
-			return
+			return InvalidJSON()
 		}
+		return err
+	}
 
-		i.log.Error("decoding struct",
-			zap.Error(err),
-		)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+	if errors := req.Validate(); errors != nil {
+		return InvalidRequestData(errors)
 	}
 
 	if err := i.musicService.PostSong(r.Context(), converter.FromAddSongRequestToModel(&req)); err != nil {
-		i.log.Error("posting song",
-			zap.Error(err),
-		)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return err
 	}
+
+	i.log.DebugContext(r.Context(), "Handler done")
 
 	w.WriteHeader(http.StatusCreated)
+	return nil
 }
 
-func (i *Implementation) DeleteSong(w http.ResponseWriter, r *http.Request) {
+func (i *Implementation) DeleteSong(w http.ResponseWriter, r *http.Request) error {
+
+	i.log.DebugContext(r.Context(), "Handler started")
 
 	var req request.ModifySongRequest
-
-	if err := decodeIntoStruct(r, &req); err != nil {
-		i.log.Error("decoding struct",
-			zap.Error(err),
-		)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 
 	req.ID = r.PathValue("id")
 
 	if req.ID == "" {
 		i.ErrorJSON(w, http.StatusBadRequest, ErrNoBody.Error())
-		return
+		return nil
 	}
 
 	if err := i.musicService.DeleteSong(r.Context(), converter.FromModifySongRequestToModel(&req)); err != nil {
-		i.log.Error("deleting song",
-			zap.Error(err),
-		)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return err
 	}
 
-	w.WriteHeader(http.StatusOK)
+	i.log.DebugContext(r.Context(), "Handler done")
+
+	w.WriteHeader(http.StatusNoContent)
+	return nil
 }
 
-func (i *Implementation) UpdateSong(w http.ResponseWriter, r *http.Request) {
+func (i *Implementation) UpdateSong(w http.ResponseWriter, r *http.Request) error {
+
+	i.log.DebugContext(r.Context(), "Handler started")
 
 	var req request.ModifySongRequest
 
 	if err := decodeIntoStruct(r, &req); err != nil {
-		i.log.Error("decoding struct",
-			zap.Error(err),
-		)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		if errors.Is(err, ErrNoBody) {
+			return InvalidJSON()
+		}
+		return err
 	}
 
-	if req.ID == "" || req.Group == "" || req.Song == "" {
-		i.ErrorJSON(w, http.StatusBadRequest, ErrNoBody.Error())
-		return
+	req.ID = r.PathValue("id")
+
+	if errors := req.Validate(); errors != nil {
+		return InvalidRequestData(errors)
 	}
 
 	if err := i.musicService.UpdateSong(r.Context(), converter.FromModifySongRequestToModel(&req)); err != nil {
 		if errors.Is(err, repo.ErrSongIsNotExist) {
-			i.ErrorJSON(w, http.StatusBadRequest, err.Error())
-			return
+			return NewAPIError(http.StatusBadRequest, err)
 		}
-
-		i.log.Error("updating song",
-			zap.Error(err),
-		)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return err
 	}
 
+	i.log.DebugContext(r.Context(), "Handler done")
+
 	w.WriteHeader(http.StatusOK)
+	return nil
 }
 
-func (i *Implementation) GetText(w http.ResponseWriter, r *http.Request) {
+func (i *Implementation) GetText(w http.ResponseWriter, r *http.Request) error {
+
+	i.log.DebugContext(r.Context(), "Handler started")
 
 	// TODO Implement
 
+	i.log.DebugContext(r.Context(), "Handler done")
+
 	w.WriteHeader(http.StatusNotImplemented)
+	return nil
 }

@@ -6,23 +6,19 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-
-	"go.uber.org/zap"
 )
 
-func (i *Implementation) JSON(w http.ResponseWriter, code int, payload any) {
+func (i *Implementation) JSON(w http.ResponseWriter, code int, payload any) error {
 	w.Header().Set("Content-Type", "application/json")
 
 	data, err := json.Marshal(&payload)
 	if err != nil {
-		i.log.Error("marshaling json",
-			zap.Error(err),
-		)
-		w.WriteHeader(http.StatusInternalServerError)
+		return err
 	}
 
 	w.WriteHeader(code)
-	w.Write(data)
+	_, err = w.Write(data)
+	return err
 }
 
 func (i *Implementation) ErrorJSON(w http.ResponseWriter, code int, msg string) {
