@@ -33,7 +33,7 @@ func initSlog(env string) *slog.Logger {
 
 	h := zapslog.NewHandler(zapL.Core(), nil)
 
-	l := slog.New(h)
+	l := slog.New(NewHandlerMiddleware(h))
 
 	return l
 }

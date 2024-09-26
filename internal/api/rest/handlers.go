@@ -19,6 +19,8 @@ func statusCheck(w http.ResponseWriter, r *http.Request) {
 
 func (i *Implementation) GetSongs(w http.ResponseWriter, r *http.Request) {
 
+	i.log.DebugContext(r.Context(), "Handler started")
+
 	songList, err := i.musicService.GetSongs(r.Context(), &model.Parameters{})
 	if err != nil {
 		i.log.Error("music service response",
@@ -33,9 +35,9 @@ func (i *Implementation) GetSongs(w http.ResponseWriter, r *http.Request) {
 
 func (i *Implementation) PostSong(w http.ResponseWriter, r *http.Request) {
 
-	req := &request.AddSongRequest{}
+	var req request.AddSongRequest
 
-	if err := decodeIntoStruct(r, req); err != nil {
+	if err := decodeIntoStruct(r, &req); err != nil {
 		if errors.Is(err, ErrNoBody) {
 			w.WriteHeader(http.StatusBadRequest)
 			i.ErrorJSON(w, http.StatusBadRequest, err.Error())
@@ -49,7 +51,7 @@ func (i *Implementation) PostSong(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := i.musicService.PostSong(r.Context(), converter.FromAddSongRequestToModel(req)); err != nil {
+	if err := i.musicService.PostSong(r.Context(), converter.FromAddSongRequestToModel(&req)); err != nil {
 		i.log.Error("posting song",
 			zap.Error(err),
 		)
@@ -62,9 +64,9 @@ func (i *Implementation) PostSong(w http.ResponseWriter, r *http.Request) {
 
 func (i *Implementation) DeleteSong(w http.ResponseWriter, r *http.Request) {
 
-	req := &request.ModifySongRequest{}
+	var req request.ModifySongRequest
 
-	if err := decodeIntoStruct(r, req); err != nil {
+	if err := decodeIntoStruct(r, &req); err != nil {
 		i.log.Error("decoding struct",
 			zap.Error(err),
 		)
@@ -72,12 +74,14 @@ func (i *Implementation) DeleteSong(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	req.ID = r.PathValue("id")
+
 	if req.ID == "" {
 		i.ErrorJSON(w, http.StatusBadRequest, ErrNoBody.Error())
 		return
 	}
 
-	if err := i.musicService.DeleteSong(r.Context(), converter.FromModifySongRequestToModel(req)); err != nil {
+	if err := i.musicService.DeleteSong(r.Context(), converter.FromModifySongRequestToModel(&req)); err != nil {
 		i.log.Error("deleting song",
 			zap.Error(err),
 		)
@@ -90,9 +94,9 @@ func (i *Implementation) DeleteSong(w http.ResponseWriter, r *http.Request) {
 
 func (i *Implementation) UpdateSong(w http.ResponseWriter, r *http.Request) {
 
-	req := &request.ModifySongRequest{}
+	var req request.ModifySongRequest
 
-	if err := decodeIntoStruct(r, req); err != nil {
+	if err := decodeIntoStruct(r, &req); err != nil {
 		i.log.Error("decoding struct",
 			zap.Error(err),
 		)
@@ -105,7 +109,7 @@ func (i *Implementation) UpdateSong(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := i.musicService.UpdateSong(r.Context(), converter.FromModifySongRequestToModel(req)); err != nil {
+	if err := i.musicService.UpdateSong(r.Context(), converter.FromModifySongRequestToModel(&req)); err != nil {
 		if errors.Is(err, repo.ErrSongIsNotExist) {
 			i.ErrorJSON(w, http.StatusBadRequest, err.Error())
 			return

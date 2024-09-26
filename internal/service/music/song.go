@@ -8,6 +8,8 @@ import (
 
 func (s *service) GetSongs(ctx context.Context, params *model.Parameters) ([]model.Song, error) {
 
+	s.log.DebugContext(ctx, "Get Song OK")
+
 	if params.Filter == "" {
 		params.Filter = "song"
 	}
@@ -15,7 +17,12 @@ func (s *service) GetSongs(ctx context.Context, params *model.Parameters) ([]mod
 		params.Page = 1
 	}
 
-	return s.repo.GetSongs(ctx, params)
+	songs, err := s.repo.GetSongs(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return songs, nil
 }
 
 func (s *service) PostSong(ctx context.Context, song *model.Song) error {

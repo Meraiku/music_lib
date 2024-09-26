@@ -20,10 +20,10 @@ func (i *Implementation) setRoutes() http.Handler {
 		r.Route("/songs", func(r chi.Router) {
 			r.Get("/", i.GetSongs)
 			r.Post("/", i.PostSong)
-			r.Put("/", i.UpdateSong)
-			r.Delete("/", i.DeleteSong)
+			r.Put("/{id}", i.UpdateSong)
+			r.Delete("/{id}", i.DeleteSong)
 
-			r.Get("/text", i.GetText)
+			r.Get("/{id}/text", i.GetText)
 		})
 	})
 
