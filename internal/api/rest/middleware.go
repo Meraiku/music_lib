@@ -34,7 +34,6 @@ func (rw *responseWriter) WriteHeader(code int) {
 func (i *Implementation) logRequest(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer i.log.Sync()
 
 		start := time.Now()
 
