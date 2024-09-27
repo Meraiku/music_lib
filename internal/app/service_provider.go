@@ -1,17 +1,20 @@
 package app
 
 import (
+	"os"
+
 	"github.com/meraiku/music_lib/internal/api/rest"
 	"github.com/meraiku/music_lib/internal/config"
 	"github.com/meraiku/music_lib/internal/repo"
 	"github.com/meraiku/music_lib/internal/repo/postgre"
 	"github.com/meraiku/music_lib/internal/service"
 	"github.com/meraiku/music_lib/internal/service/music"
+	"github.com/meraiku/music_lib/pkg/logging"
 	"go.uber.org/zap"
 )
 
 type serviceProvider struct {
-	log          *zap.Logger
+	log          *logging.Logger
 	restImpl     *rest.Implementation
 	cfg          *config.RESTConfig
 	repo         repo.MusicRepository
@@ -30,9 +33,9 @@ func (s *serviceProvider) Config() *config.RESTConfig {
 	return s.cfg
 }
 
-func (s *serviceProvider) Logger() *zap.Logger {
+func (s *serviceProvider) Logger() *logging.Logger {
 	if s.log == nil {
-		s.log, _ = zap.NewDevelopment()
+		s.log = logging.Init(os.Getenv("ENV"))
 	}
 
 	return s.log

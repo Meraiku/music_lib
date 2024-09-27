@@ -4,16 +4,16 @@ import (
 	"net/http"
 
 	"github.com/meraiku/music_lib/internal/service"
-	"go.uber.org/zap"
+	"github.com/meraiku/music_lib/pkg/logging"
 )
 
 type Implementation struct {
 	router       http.Handler
-	log          *zap.Logger
+	log          *logging.Logger
 	musicService service.MusicService
 }
 
-func NewImplementation(musicService service.MusicService, log *zap.Logger) *Implementation {
+func NewImplementation(musicService service.MusicService, log *logging.Logger) *Implementation {
 	return &Implementation{
 		log:          log,
 		musicService: musicService,
