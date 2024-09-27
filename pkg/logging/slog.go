@@ -5,41 +5,31 @@ import (
 	"log/slog"
 	"os"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/exp/zapslog"
+	slogmulti "github.com/samber/slog-multi"
 )
 
-func initSlog(env string) *slog.Logger {
+func initSlog(_ string) *slog.Logger {
 
-	createLoggingDir()
+	f := openLoggingFile()
 
-	cfg := zap.Config{
-		Encoding:         "json",
-		OutputPaths:      []string{"stdout", "logs/all.log"},
-		ErrorOutputPaths: []string{"stderr", "logs/all.log"},
-	}
-
-	switch env {
-	case "prod":
-		cfg.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
-		cfg.EncoderConfig = zap.NewProductionEncoderConfig()
-	default:
-		cfg.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
-		cfg.EncoderConfig = zap.NewDevelopmentEncoderConfig()
-		cfg.Development = true
-	}
-
-	zapL, _ := cfg.Build()
-
-	h := zapslog.NewHandler(zapL.Core(), nil)
+	h := slogmulti.Fanout(
+		slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug}),
+		slog.NewJSONHandler(f, &slog.HandlerOptions{Level: slog.LevelInfo, ReplaceAttr: replaceAttr}),
+	)
 
 	l := slog.New(NewHandlerMiddleware(h))
 
 	return l
 }
 
-func createLoggingDir() {
+func openLoggingFile() *os.File {
 	if err := os.MkdirAll("logs", 0755); err != nil {
 		panic(fmt.Errorf("error creating 'logs' directory: %s", err))
 	}
+
+	f, err := os.OpenFile("logs/all.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		panic(fmt.Errorf("error oppening logs file: %s", err))
+	}
+	return f
 }

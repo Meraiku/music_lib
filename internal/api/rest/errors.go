@@ -17,7 +17,7 @@ type APIError struct {
 }
 
 func (e APIError) Error() string {
-	return fmt.Sprintf("api error: %d", e.StatusCode)
+	return fmt.Sprintf("api error: %s", e.Msg)
 }
 
 func NewAPIError(statusCode int, err error) APIError {
@@ -53,7 +53,7 @@ func (i *Implementation) Make(h APIFunc) http.HandlerFunc {
 				}
 				i.JSON(w, http.StatusInternalServerError, errResp)
 			}
-			i.log.ErrorContext(r.Context(), "HTTP API error", slog.String("error", err.Error()))
+			i.log.ErrorContext(r.Context(), "HTTP API error", slog.Any("error", err))
 		}
 	}
 }
