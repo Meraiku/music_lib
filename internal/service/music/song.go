@@ -25,11 +25,16 @@ func (s *service) GetSongs(ctx context.Context, params *model.Parameters) ([]mod
 	return songs, nil
 }
 
-func (s *service) PostSong(ctx context.Context, song *model.Song) error {
+func (s *service) PostSong(ctx context.Context, song *model.Song) (*model.Song, error) {
 
 	s.log.DebugContext(ctx, "Post Song OK")
 
-	return s.repo.AddSong(ctx, song)
+	song, err := s.repo.AddSong(ctx, song)
+	if err != nil {
+		return nil, err
+	}
+
+	return song, nil
 }
 
 func (s *service) DeleteSong(ctx context.Context, song *model.Song) error {

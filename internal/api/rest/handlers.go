@@ -63,14 +63,14 @@ func (i *Implementation) PostSong(w http.ResponseWriter, r *http.Request) error 
 		return InvalidRequestData(errors)
 	}
 
-	if err := i.musicService.PostSong(r.Context(), converter.FromAddSongRequestToModel(&req)); err != nil {
+	song, err := i.musicService.PostSong(r.Context(), converter.FromAddSongRequestToModel(&req))
+	if err != nil {
 		return err
 	}
 
 	i.log.DebugContext(r.Context(), "Handler done")
 
-	w.WriteHeader(http.StatusCreated)
-	return nil
+	return i.JSON(w, http.StatusCreated, song)
 }
 
 func (i *Implementation) DeleteSong(w http.ResponseWriter, r *http.Request) error {

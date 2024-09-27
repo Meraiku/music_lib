@@ -30,7 +30,11 @@ func (db *postgre) GetSongs(ctx context.Context, params *model.Parameters) ([]mo
 	return out, nil
 }
 
-func (db *postgre) AddSong(ctx context.Context, song *model.Song) error {
+func (db *postgre) AddSong(ctx context.Context, song *model.Song) (*model.Song, error) {
+
+	query := `INSERT INTO songs 
+	(id, band, song, release_date, lirics, link, created_at, updated_at) 
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
 
 	s := repo.FromSongToRepo(song)
 
@@ -38,12 +42,21 @@ func (db *postgre) AddSong(ctx context.Context, song *model.Song) error {
 	s.CreatedAt = time.Now()
 	s.UpdatedAt = time.Now()
 
-	_, err := db.db.NewInsert().Model(s).Exec(ctx)
+	_, err := db.db.NewRaw(query,
+		s.ID,
+		s.Band,
+		s.Song,
+		s.ReleaseDate,
+		s.Lirics,
+		s.Link,
+		s.CreatedAt,
+		s.UpdatedAt,
+	).Exec(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return repo.ToSongFromRepo(s), nil
 }
 
 func (db *postgre) DeleteSong(ctx context.Context, song *model.Song) error {

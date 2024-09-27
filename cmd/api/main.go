@@ -10,8 +10,6 @@ import (
 // @title Music Library API
 // @version 1.0
 
-// @host localhost:9000
-
 func main() {
 	ctx := context.Background()
 
