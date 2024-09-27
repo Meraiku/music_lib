@@ -1,0 +1,65 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Music Library API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:9000",
+    "paths": {
+        "/api/songs": {
+            "get": {
+                "description": "Prints List of songs",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Songs"
+                ],
+                "summary": "Get Songs",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.GetSongsResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rest.APIError"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "response.GetSongsResponse": {
+            "type": "object",
+            "properties": {
+                "group": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "song": {
+                    "type": "string"
+                }
+            }
+        },
+        "rest.APIError": {
+            "type": "object",
+            "properties": {
+                "msg": {},
+                "status_code": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}

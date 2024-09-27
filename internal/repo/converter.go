@@ -1,12 +1,11 @@
-package converter
+package repo
 
 import (
 	"github.com/meraiku/music_lib/internal/model"
-	repoModel "github.com/meraiku/music_lib/internal/repo/postgre/model"
 )
 
-func FromSongToRepo(s *model.Song) *repoModel.Song {
-	return &repoModel.Song{
+func FromSongToRepo(s *model.Song) *Song {
+	return &Song{
 		ID:          s.ID,
 		Band:        s.Group,
 		Song:        s.Song,
@@ -18,7 +17,7 @@ func FromSongToRepo(s *model.Song) *repoModel.Song {
 	}
 }
 
-func ToSongFromRepo(s *repoModel.Song) *model.Song {
+func ToSongFromRepo(s *Song) *model.Song {
 	return &model.Song{
 		ID:          s.ID,
 		Group:       s.Band,

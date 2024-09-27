@@ -9,17 +9,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/meraiku/music_lib/internal/model"
 	"github.com/meraiku/music_lib/internal/repo"
-	repoModel "github.com/meraiku/music_lib/internal/repo/postgre/model"
 	"github.com/uptrace/bun"
-
-	"github.com/meraiku/music_lib/internal/repo/postgre/converter"
 )
 
 func (db *postgre) GetSongs(ctx context.Context, params *model.Parameters) ([]model.Song, error) {
 
 	limit := 20
 	offset := limit * (params.Page - 1)
-	songs := make([]repoModel.Song, 0, limit)
+	songs := make([]repo.Song, 0, limit)
 
 	if err := db.db.NewRaw("SELECT * FROM songs ORDER BY ? LIMIT ? OFFSET ?", bun.Ident(params.Filter), limit, offset).Scan(ctx, &songs); err != nil {
 		return nil, err
@@ -27,7 +24,7 @@ func (db *postgre) GetSongs(ctx context.Context, params *model.Parameters) ([]mo
 
 	out := make([]model.Song, len(songs))
 	for i := range songs {
-		out[i] = *converter.ToSongFromRepo(&songs[i])
+		out[i] = *repo.ToSongFromRepo(&songs[i])
 	}
 
 	return out, nil
@@ -35,7 +32,7 @@ func (db *postgre) GetSongs(ctx context.Context, params *model.Parameters) ([]mo
 
 func (db *postgre) AddSong(ctx context.Context, song *model.Song) error {
 
-	s := converter.FromSongToRepo(song)
+	s := repo.FromSongToRepo(song)
 
 	s.ID = uuid.NewString()
 	s.CreatedAt = time.Now()
@@ -51,7 +48,7 @@ func (db *postgre) AddSong(ctx context.Context, song *model.Song) error {
 
 func (db *postgre) DeleteSong(ctx context.Context, song *model.Song) error {
 
-	s := converter.FromSongToRepo(song)
+	s := repo.FromSongToRepo(song)
 
 	_, err := db.db.NewRaw("DELETE FROM songs WHERE id = ?", s.ID).Exec(ctx)
 	if err != nil {
@@ -66,7 +63,7 @@ func (db *postgre) DeleteSong(ctx context.Context, song *model.Song) error {
 
 func (db *postgre) UpdateSong(ctx context.Context, song *model.Song) error {
 
-	s := converter.FromSongToRepo(song)
+	s := repo.FromSongToRepo(song)
 
 	s.UpdatedAt = time.Now()
 

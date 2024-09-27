@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/meraiku/music_lib/internal/api/rest/request"
+	"github.com/meraiku/music_lib/internal/api/rest/response"
 	"github.com/meraiku/music_lib/internal/converter"
 	"github.com/meraiku/music_lib/internal/model"
 	"github.com/meraiku/music_lib/internal/repo"
@@ -16,6 +17,13 @@ func statusCheck(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("OK"))
 }
 
+// @Summary Get Songs
+// @Description  Prints List of songs
+// @Tags Songs
+// @Produce json
+// @Success 200 {array} response.GetSongsResponse
+// @Failure 500 {object} APIError
+// @Router /api/songs [get]
 func (i *Implementation) GetSongs(w http.ResponseWriter, r *http.Request) error {
 
 	i.log.DebugContext(r.Context(), "Handler started")
@@ -25,9 +33,17 @@ func (i *Implementation) GetSongs(w http.ResponseWriter, r *http.Request) error 
 		return err
 	}
 
+	out := make([]response.GetSongsResponse, len(songList))
+
+	for i, song := range songList {
+		out[i].ID = song.ID
+		out[i].Group = song.Group
+		out[i].Song = song.Song
+	}
+
 	i.log.DebugContext(r.Context(), "Handler done")
 
-	return i.JSON(w, http.StatusOK, songList)
+	return i.JSON(w, http.StatusOK, out)
 }
 
 func (i *Implementation) PostSong(w http.ResponseWriter, r *http.Request) error {

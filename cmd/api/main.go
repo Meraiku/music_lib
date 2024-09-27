@@ -7,6 +7,11 @@ import (
 	"github.com/meraiku/music_lib/internal/app"
 )
 
+// @title Music Library API
+// @version 1.0
+
+// @host localhost:9000
+
 func main() {
 	ctx := context.Background()
 
