@@ -1,8 +1,6 @@
-package model
+package repo
 
-import (
-	"time"
-)
+import "time"
 
 type Song struct {
 	ID          string    `json:"id"`
@@ -13,4 +11,13 @@ type Song struct {
 	Link        string    `json:"link"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type Parameters struct {
+	Filter *string `json:"filter"`
+	Page   *int    `json:"page"`
+}
+
+type Text struct {
+	Text string `json:"text"`
 }

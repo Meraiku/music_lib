@@ -1,0 +1,174 @@
+definitions:
+  model.Song:
+    properties:
+      group:
+        type: string
+      id:
+        type: string
+      link:
+        type: string
+      releaseDate:
+        type: string
+      song:
+        type: string
+      text:
+        type: string
+    type: object
+  request.AddSongRequest:
+    properties:
+      group:
+        type: string
+      song:
+        type: string
+    type: object
+  request.ModifySongRequest:
+    properties:
+      group:
+        type: string
+      id:
+        type: string
+      song:
+        type: string
+    type: object
+  rest.APIError:
+    properties:
+      msg: {}
+      status_code:
+        type: integer
+    type: object
+info:
+  contact: {}
+  title: Music Library API
+  version: "1.0"
+paths:
+  /api/songs:
+    get:
+      description: Prints List of songs
+      parameters:
+      - description: Page number. Default 1
+        in: query
+        name: page
+        type: integer
+      - description: Filter By ... Default by 'song' name
+        in: query
+        name: filter
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Song'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rest.APIError'
+      summary: Get Songs
+      tags:
+      - Songs
+    post:
+      consumes:
+      - application/json
+      description: Add song to Library
+      parameters:
+      - description: Add song
+        in: body
+        name: song
+        required: true
+        schema:
+          $ref: '#/definitions/request.AddSongRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Song'
+        "404":
+          description: Not Found
+          schema:
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/rest.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rest.APIError'
+      summary: Post Song
+      tags:
+      - Songs
+  /api/songs/{id}:
+    delete:
+      description: Deletes song from Library
+      parameters:
+      - description: Song ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rest.APIError'
+      summary: Delete Song
+      tags:
+      - Songs
+    put:
+      consumes:
+      - application/json
+      description: Updates song information in Library
+      parameters:
+      - description: Song ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Modify song info
+        in: body
+        name: song
+        required: true
+        schema:
+          $ref: '#/definitions/request.ModifySongRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Song'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rest.APIError'
+        "404":
+          description: Not Found
+          schema:
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/rest.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rest.APIError'
+      summary: Update Song Info
+      tags:
+      - Songs
+swagger: "2.0"

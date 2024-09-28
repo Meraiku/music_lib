@@ -7,6 +7,8 @@ import (
 	"os"
 
 	"github.com/meraiku/music_lib/internal/config"
+
+	_ "github.com/meraiku/music_lib/api/swagger"
 )
 
 type App struct {

@@ -13,13 +13,15 @@ import (
 
 var _ repo.MusicRepository = (*postgre)(nil)
 
+var dsn = os.Getenv("POSTGRES_DSN")
+
 type postgre struct {
 	db *bun.DB
 	mu *sync.RWMutex
 }
 
 func New() (*postgre, error) {
-	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(os.Getenv("DB_URL"))))
+	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
 
 	if err := sqldb.Ping(); err != nil {
 		return nil, err

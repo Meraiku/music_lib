@@ -1,6 +1,7 @@
 package app
 
 import (
+	"log"
 	"os"
 
 	"github.com/meraiku/music_lib/internal/api/rest"
@@ -10,7 +11,6 @@ import (
 	"github.com/meraiku/music_lib/internal/service"
 	"github.com/meraiku/music_lib/internal/service/music"
 	"github.com/meraiku/music_lib/pkg/logging"
-	"go.uber.org/zap"
 )
 
 type serviceProvider struct {
@@ -54,9 +54,7 @@ func (s *serviceProvider) Repository() repo.MusicRepository {
 		var err error
 		s.repo, err = postgre.New()
 		if err != nil {
-			zap.S().Panicln("connecting db",
-				zap.Error(err),
-			)
+			log.Fatalf("error connecting db: %s", err)
 		}
 	}
 

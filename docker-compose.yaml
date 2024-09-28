@@ -11,3 +11,13 @@ services:
     env_file:
       - path: .env
         required: true
+
+  api:
+    container_name: Music_Lib_API
+    build: .
+    restart: always
+    ports: 
+      - 9000:9000
+    env_file:
+      - path: .env
+        required: true
