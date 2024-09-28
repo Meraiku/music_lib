@@ -3,6 +3,7 @@ package music
 import (
 	"context"
 
+	"github.com/mdobak/go-xerrors"
 	"github.com/meraiku/music_lib/internal/model"
 )
 
@@ -29,7 +30,16 @@ func (s *service) PostSong(ctx context.Context, song *model.Song) (*model.Song, 
 
 	s.log.DebugContext(ctx, "Post Song OK")
 
-	song, err := s.repo.AddSong(ctx, song)
+	s.log.DebugContext(ctx, "Fetching Data from Info service")
+
+	err := FetchSongInfo(ctx, song)
+	if err != nil {
+		return nil, xerrors.WithStackTrace(err, -1)
+	}
+
+	s.log.DebugContext(ctx, "Add data to repository")
+
+	song, err = s.repo.AddSong(ctx, song)
 	if err != nil {
 		return nil, err
 	}
