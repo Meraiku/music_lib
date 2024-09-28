@@ -7,5 +7,9 @@ run:build
 	@./.bin/api
 
 swagger:
+	@swag fmt
 	@go install github.com/swaggo/swag/cmd/swag@latest
 	@swag init -g cmd/api/main.go -o api/swagger
+
+docker:build
+	@sudo docker compose up --build

@@ -25,6 +25,20 @@ const docTemplate = `{
                     "Songs"
                 ],
                 "summary": "Get Songs",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number. Default 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter By ... Default by 'song' name",
+                        "name": "filter",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",

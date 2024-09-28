@@ -15,6 +15,10 @@ import (
 
 func (db *postgre) GetSongs(ctx context.Context, params *model.Parameters) ([]model.Song, error) {
 
+	if params.Filter == "group" {
+		params.Filter = "band"
+	}
+
 	limit := 20
 	offset := limit * (params.Page - 1)
 	songs := make([]repo.Song, 0, limit)

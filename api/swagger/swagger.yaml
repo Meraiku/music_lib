@@ -44,6 +44,15 @@ paths:
   /api/songs:
     get:
       description: Prints List of songs
+      parameters:
+      - description: Page number. Default 1
+        in: query
+        name: page
+        type: integer
+      - description: Filter By ... Default by 'song' name
+        in: query
+        name: filter
+        type: string
       produces:
       - application/json
       responses:
