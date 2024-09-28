@@ -12,8 +12,6 @@ func FromSongToRepo(s *model.Song) *Song {
 		ReleaseDate: s.ReleaseDate,
 		Lirics:      s.Text,
 		Link:        s.Link,
-		CreatedAt:   s.CreatedAt,
-		UpdatedAt:   s.UpdatedAt,
 	}
 }
 
@@ -25,7 +23,5 @@ func ToSongFromRepo(s *Song) *model.Song {
 		ReleaseDate: s.ReleaseDate,
 		Text:        s.Lirics,
 		Link:        s.Link,
-		CreatedAt:   s.CreatedAt,
-		UpdatedAt:   s.UpdatedAt,
 	}
 }

@@ -44,7 +44,7 @@ func (s *service) DeleteSong(ctx context.Context, song *model.Song) error {
 	return s.repo.DeleteSong(ctx, song)
 }
 
-func (s *service) UpdateSong(ctx context.Context, song *model.Song) error {
+func (s *service) UpdateSong(ctx context.Context, song *model.Song) (*model.Song, error) {
 
 	s.log.DebugContext(ctx, "Update Song OK")
 

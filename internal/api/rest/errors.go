@@ -8,7 +8,8 @@ import (
 )
 
 var (
-	ErrNoBody = errors.New("request body is empty")
+	ErrNoBody    = errors.New("request body is empty")
+	ErrInvalidID = errors.New("invalid ID")
 )
 
 type APIError struct {

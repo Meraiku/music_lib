@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/mdobak/go-xerrors"
 	"github.com/meraiku/music_lib/internal/model"
 	"github.com/meraiku/music_lib/internal/repo"
 	"github.com/uptrace/bun"
@@ -19,7 +20,7 @@ func (db *postgre) GetSongs(ctx context.Context, params *model.Parameters) ([]mo
 	songs := make([]repo.Song, 0, limit)
 
 	if err := db.db.NewRaw("SELECT * FROM songs ORDER BY ? LIMIT ? OFFSET ?", bun.Ident(params.Filter), limit, offset).Scan(ctx, &songs); err != nil {
-		return nil, err
+		return nil, xerrors.WithStackTrace(err, -1)
 	}
 
 	out := make([]model.Song, len(songs))
@@ -34,7 +35,7 @@ func (db *postgre) AddSong(ctx context.Context, song *model.Song) (*model.Song, 
 
 	query := `INSERT INTO songs 
 	(id, band, song, release_date, lirics, link, created_at, updated_at) 
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`
 
 	s := repo.FromSongToRepo(song)
 
@@ -42,7 +43,7 @@ func (db *postgre) AddSong(ctx context.Context, song *model.Song) (*model.Song, 
 	s.CreatedAt = time.Now()
 	s.UpdatedAt = time.Now()
 
-	_, err := db.db.NewRaw(query,
+	err := db.db.NewRaw(query,
 		s.ID,
 		s.Band,
 		s.Song,
@@ -51,9 +52,9 @@ func (db *postgre) AddSong(ctx context.Context, song *model.Song) (*model.Song, 
 		s.Link,
 		s.CreatedAt,
 		s.UpdatedAt,
-	).Exec(ctx)
+	).Scan(ctx, s)
 	if err != nil {
-		return nil, err
+		return nil, xerrors.WithStackTrace(err, -1)
 	}
 
 	return repo.ToSongFromRepo(s), nil
@@ -68,24 +69,24 @@ func (db *postgre) DeleteSong(ctx context.Context, song *model.Song) error {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
 		}
-		return err
+		return xerrors.WithStackTrace(err, -1)
 	}
 
 	return nil
 }
 
-func (db *postgre) UpdateSong(ctx context.Context, song *model.Song) error {
+func (db *postgre) UpdateSong(ctx context.Context, song *model.Song) (*model.Song, error) {
 
 	s := repo.FromSongToRepo(song)
 
 	s.UpdatedAt = time.Now()
 
-	if _, err := db.db.NewRaw("UPDATE songs SET band = ?, song = ?, updated_at = ? WHERE id = ?", s.Band, s.Song, s.UpdatedAt, s.ID).Exec(ctx); err != nil {
+	if err := db.db.NewRaw("UPDATE songs SET band = ?, song = ?, updated_at = ? WHERE id = ? RETURNING *", s.Band, s.Song, s.UpdatedAt, s.ID).Scan(ctx, s); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return repo.ErrSongIsNotExist
+			return nil, repo.ErrSongIsNotExist
 		}
 
-		return err
+		return nil, xerrors.WithStackTrace(err, -1)
 	}
-	return nil
+	return repo.ToSongFromRepo(s), nil
 }
