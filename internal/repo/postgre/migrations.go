@@ -2,7 +2,6 @@ package postgre
 
 import (
 	"errors"
-	"os"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -12,7 +11,7 @@ import (
 func Songs() error {
 	m, err := migrate.New(
 		"file://migrations",
-		os.Getenv("DB_URL"))
+		dsn)
 	if err != nil {
 		return err
 	}
