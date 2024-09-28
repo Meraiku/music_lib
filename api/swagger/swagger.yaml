@@ -171,4 +171,18 @@ paths:
       summary: Update Song Info
       tags:
       - Songs
+  /healthz:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            type: object
+      summary: Check Server Availability
 swagger: "2.0"
