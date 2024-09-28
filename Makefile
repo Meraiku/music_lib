@@ -13,3 +13,10 @@ swagger:
 
 docker:build
 	@sudo docker compose up --build
+
+
+build_test:
+	@go build -o ./.bin/info ./cmd/info
+
+info:build_test
+	@./.bin/info
