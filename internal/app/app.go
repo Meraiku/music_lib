@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/meraiku/music_lib/internal/config"
 
@@ -48,11 +47,10 @@ func (a *App) initDeps(ctx context.Context) error {
 }
 
 func (a *App) initConfig(_ context.Context) error {
-	if os.Getenv("ENV") != "" {
-		return nil
-	}
 
-	return config.Load(".env")
+	config.Load(".env")
+
+	return nil
 }
 
 func (a *App) initServiceProvicer(_ context.Context) error {

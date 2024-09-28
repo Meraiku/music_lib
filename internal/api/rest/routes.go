@@ -14,7 +14,7 @@ func (i *Implementation) setRoutes() http.Handler {
 	r.Use(i.logRequest)
 	r.Use(middleware.Recoverer)
 
-	r.Get("/healthz", statusCheck)
+	r.Get("/healthz", i.ServerStatus)
 
 	r.Get("/swagger/*", httpSwagger.Handler())
 
