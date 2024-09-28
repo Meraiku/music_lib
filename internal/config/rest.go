@@ -18,9 +18,6 @@ func NewRESTConfig() *RESTConfig {
 	cfg := &RESTConfig{}
 
 	cfg.host = os.Getenv("HOST")
-	if cfg.host == "" {
-		//cfg.host = "localhost"
-	}
 
 	cfg.port = os.Getenv("PORT")
 
