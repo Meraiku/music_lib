@@ -12,10 +12,13 @@ func FromAddSongRequestToModel(req *request.AddSongRequest) *model.Song {
 	}
 }
 
-func FromModifySongRequestToModel(req *request.ModifySongRequest) *model.Song {
-	return &model.Song{
-		ID:    req.ID,
-		Group: req.Group,
-		Song:  req.Song,
+func FromPatchRequestToModel(req *request.PatchRequest, id string) *model.Update {
+	return &model.Update{
+		ID:          id,
+		Group:       req.Group,
+		Song:        req.Song,
+		ReleaseDate: req.ReleaseDate,
+		Text:        req.Text,
+		Link:        req.Link,
 	}
 }

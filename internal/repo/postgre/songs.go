@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -80,11 +81,9 @@ func (db *postgre) AddSong(ctx context.Context, song *model.Song) (*model.Song, 
 	return repo.ToSongFromRepo(s), nil
 }
 
-func (db *postgre) DeleteSong(ctx context.Context, song *model.Song) error {
+func (db *postgre) DeleteSong(ctx context.Context, id string) error {
 
-	s := repo.FromSongToRepo(song)
-
-	_, err := db.db.NewRaw("DELETE FROM songs WHERE id = ?", s.ID).Exec(ctx)
+	_, err := db.db.NewRaw("DELETE FROM songs WHERE id = ?", id).Exec(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
@@ -95,18 +94,31 @@ func (db *postgre) DeleteSong(ctx context.Context, song *model.Song) error {
 	return nil
 }
 
-func (db *postgre) UpdateSong(ctx context.Context, song *model.Song) (*model.Song, error) {
+func (db *postgre) UpdateSong(ctx context.Context, song *model.Update) (*model.Song, error) {
 
-	s := repo.FromSongToRepo(song)
+	var s repo.Song
 
-	s.UpdatedAt = time.Now()
+	queryStart := `UPDATE songs SET `
+	queyEnd := ` WHERE id = ? RETURNING *`
 
-	if err := db.db.NewRaw("UPDATE songs SET band = ?, song = ?, updated_at = ? WHERE id = ? RETURNING *", s.Band, s.Song, s.UpdatedAt, s.ID).Scan(ctx, s); err != nil {
+	u := repo.FromUpdateToRepo(song)
+
+	upd := u.SQLUpdates()
+
+	query := fmt.Sprintf("%s%s%s", queryStart, upd.Assignments(), queyEnd)
+
+	args := upd.Values()
+	args = append(args, u.ID)
+
+	fmt.Println(query)
+	fmt.Println(args...)
+
+	if err := db.db.NewRaw(query, args...).Scan(ctx, &s); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, repo.ErrSongIsNotExist
 		}
 
 		return nil, xerrors.WithStackTrace(err, 0)
 	}
-	return repo.ToSongFromRepo(s), nil
+	return repo.ToSongFromRepo(&s), nil
 }

@@ -25,3 +25,14 @@ func ToSongFromRepo(s *Song) *model.Song {
 		Link:        s.Link,
 	}
 }
+
+func FromUpdateToRepo(s *model.Update) *Update {
+	return &Update{
+		ID:          s.ID,
+		Band:        s.Group,
+		Song:        s.Song,
+		ReleaseDate: s.ReleaseDate,
+		Lirics:      s.Text,
+		Link:        s.Link,
+	}
+}

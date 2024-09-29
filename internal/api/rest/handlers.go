@@ -158,15 +158,13 @@ func (i *Implementation) DeleteSong(w http.ResponseWriter, r *http.Request) erro
 
 	i.log.DebugContext(r.Context(), "Handler started")
 
-	var req request.ModifySongRequest
+	id := r.PathValue("id")
 
-	req.ID = r.PathValue("id")
-
-	if err := uuid.Validate(req.ID); err != nil {
+	if err := uuid.Validate(id); err != nil {
 		return NewAPIError(http.StatusBadRequest, ErrInvalidID)
 	}
 
-	if err := i.musicService.DeleteSong(r.Context(), converter.FromModifySongRequestToModel(&req)); err != nil {
+	if err := i.musicService.DeleteSong(r.Context(), id); err != nil {
 		return err
 	}
 
@@ -188,12 +186,12 @@ func (i *Implementation) DeleteSong(w http.ResponseWriter, r *http.Request) erro
 // @Failure		404		{object}	object
 // @Failure		422		{object}	APIError
 // @Failure		500		{object}	APIError
-// @Router			/api/songs/{id} [put]
+// @Router			/api/songs/{id} [patch]
 func (i *Implementation) UpdateSong(w http.ResponseWriter, r *http.Request) error {
 
 	i.log.DebugContext(r.Context(), "Handler started")
 
-	var req request.ModifySongRequest
+	var req request.PatchRequest
 
 	if err := decodeIntoStruct(r, &req); err != nil {
 		if errors.Is(err, ErrNoBody) {
@@ -202,17 +200,13 @@ func (i *Implementation) UpdateSong(w http.ResponseWriter, r *http.Request) erro
 		return err
 	}
 
-	req.ID = r.PathValue("id")
+	id := r.PathValue("id")
 
-	if err := uuid.Validate(req.ID); err != nil {
+	if err := uuid.Validate(id); err != nil {
 		return NewAPIError(http.StatusBadRequest, ErrInvalidID)
 	}
 
-	if errors := req.Validate(); errors != nil {
-		return InvalidRequestData(errors)
-	}
-
-	song, err := i.musicService.UpdateSong(r.Context(), converter.FromModifySongRequestToModel(&req))
+	song, err := i.musicService.UpdateSong(r.Context(), converter.FromPatchRequestToModel(&req, id))
 	if err != nil {
 		if errors.Is(err, repo.ErrSongIsNotExist) {
 			return NewAPIError(http.StatusBadRequest, err)
