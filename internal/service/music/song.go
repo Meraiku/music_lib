@@ -3,6 +3,9 @@ package music
 import (
 	"context"
 	"errors"
+	"fmt"
+	"log/slog"
+	"strings"
 
 	"github.com/mdobak/go-xerrors"
 	"github.com/meraiku/music_lib/internal/lib/fetcher"
@@ -19,6 +22,31 @@ func (s *service) GetSongs(ctx context.Context, params *model.Parameters) ([]mod
 	}
 
 	return songs, nil
+}
+
+func (s *service) GetText(ctx context.Context, id string) (*model.Text, error) {
+
+	s.log.DebugContext(ctx, "Get Text OK")
+
+	s.log.DebugContext(ctx, "Getting text from repo", slog.String("song_id", id))
+
+	text, err := s.repo.GetTextByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	s.log.DebugContext(ctx, "Got text from repo", slog.String("text", text))
+
+	formatedText := strings.Split(text, "\n\n")
+
+	fmt.Println(formatedText)
+
+	out := &model.Text{
+		Text:          formatedText,
+		CoupletNumber: len(formatedText),
+	}
+
+	return out, nil
 }
 
 func (s *service) PostSong(ctx context.Context, song *model.Song) (*model.Song, error) {
@@ -59,11 +87,4 @@ func (s *service) UpdateSong(ctx context.Context, song *model.Song) (*model.Song
 	s.log.DebugContext(ctx, "Update Song OK")
 
 	return s.repo.UpdateSong(ctx, song)
-}
-
-func (s *service) GetText(ctx context.Context, song *model.Song, params *model.Parameters) ([]model.Text, error) {
-
-	s.log.DebugContext(ctx, "Get Text OK")
-
-	return nil, nil
 }

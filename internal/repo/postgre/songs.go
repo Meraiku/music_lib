@@ -24,7 +24,7 @@ func (db *postgre) GetSongs(ctx context.Context, params *model.Parameters) ([]mo
 	songs := make([]repo.Song, 0, limit)
 
 	if err := db.db.NewRaw("SELECT * FROM songs ORDER BY ? LIMIT ? OFFSET ?", bun.Ident(params.Filter), limit, offset).Scan(ctx, &songs); err != nil {
-		return nil, xerrors.WithStackTrace(err, -1)
+		return nil, xerrors.WithStackTrace(err, 0)
 	}
 
 	out := make([]model.Song, len(songs))
@@ -33,6 +33,22 @@ func (db *postgre) GetSongs(ctx context.Context, params *model.Parameters) ([]mo
 	}
 
 	return out, nil
+}
+
+func (db *postgre) GetTextByID(ctx context.Context, id string) (string, error) {
+
+	query := `SELECT (lirics) FROM songs WHERE id = ?`
+
+	var text string
+
+	if err := db.db.NewRaw(query, id).Scan(ctx, &text); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", repo.ErrSongIsNotExist
+		}
+		return "", xerrors.WithStackTrace(err, 0)
+	}
+
+	return text, nil
 }
 
 func (db *postgre) AddSong(ctx context.Context, song *model.Song) (*model.Song, error) {
@@ -58,7 +74,7 @@ func (db *postgre) AddSong(ctx context.Context, song *model.Song) (*model.Song, 
 		s.UpdatedAt,
 	).Scan(ctx, s)
 	if err != nil {
-		return nil, xerrors.WithStackTrace(err, -1)
+		return nil, xerrors.WithStackTrace(err, 0)
 	}
 
 	return repo.ToSongFromRepo(s), nil
@@ -73,7 +89,7 @@ func (db *postgre) DeleteSong(ctx context.Context, song *model.Song) error {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
 		}
-		return xerrors.WithStackTrace(err, -1)
+		return xerrors.WithStackTrace(err, 0)
 	}
 
 	return nil
@@ -90,7 +106,7 @@ func (db *postgre) UpdateSong(ctx context.Context, song *model.Song) (*model.Son
 			return nil, repo.ErrSongIsNotExist
 		}
 
-		return nil, xerrors.WithStackTrace(err, -1)
+		return nil, xerrors.WithStackTrace(err, 0)
 	}
 	return repo.ToSongFromRepo(s), nil
 }

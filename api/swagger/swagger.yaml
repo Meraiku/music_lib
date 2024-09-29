@@ -14,6 +14,15 @@ definitions:
       text:
         type: string
     type: object
+  model.Text:
+    properties:
+      couplet_number:
+        type: integer
+      text:
+        items:
+          type: string
+        type: array
+    type: object
   request.AddSongRequest:
     properties:
       group:
@@ -173,6 +182,41 @@ paths:
           schema:
             $ref: '#/definitions/rest.APIError'
       summary: Update Song Info
+      tags:
+      - Songs
+  /api/songs/{id}/text:
+    get:
+      description: Prints text with couplet number
+      parameters:
+      - description: Song ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Text'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rest.APIError'
+        "404":
+          description: Not Found
+          schema:
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/rest.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rest.APIError'
+      summary: Get Text
       tags:
       - Songs
   /healthz:
