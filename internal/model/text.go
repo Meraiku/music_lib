@@ -1,6 +1,6 @@
 package model
 
 type Text struct {
-	Text          []string `json:"text"`
-	CoupletNumber int      `json:"couplet_number"`
+	VerseNumber int    `json:"verse_number"`
+	Verse       string `json:"verse"`
 }

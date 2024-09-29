@@ -3,9 +3,7 @@ package music
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
-	"strings"
 
 	"github.com/mdobak/go-xerrors"
 	"github.com/meraiku/music_lib/internal/lib/fetcher"
@@ -24,7 +22,7 @@ func (s *service) GetSongs(ctx context.Context, params *model.Parameters) ([]mod
 	return songs, nil
 }
 
-func (s *service) GetText(ctx context.Context, id string) (*model.Text, error) {
+func (s *service) GetText(ctx context.Context, id string, verse int) ([]model.Text, error) {
 
 	s.log.DebugContext(ctx, "Get Text OK")
 
@@ -37,16 +35,18 @@ func (s *service) GetText(ctx context.Context, id string) (*model.Text, error) {
 
 	s.log.DebugContext(ctx, "Got text from repo", slog.String("text", text))
 
-	formatedText := strings.Split(text, "\n\n")
+	out := paginateText(text)
 
-	fmt.Println(formatedText)
-
-	out := &model.Text{
-		Text:          formatedText,
-		CoupletNumber: len(formatedText),
+	if verse > len(out) || verse < 0 {
+		verse = 0
 	}
 
-	return out, nil
+	switch verse {
+	case 0:
+		return out, nil
+	default:
+		return out[verse-1 : verse : verse], nil
+	}
 }
 
 func (s *service) PostSong(ctx context.Context, song *model.Song) (*model.Song, error) {

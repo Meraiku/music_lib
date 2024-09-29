@@ -16,12 +16,10 @@ definitions:
     type: object
   model.Text:
     properties:
-      couplet_number:
+      verse:
+        type: string
+      verse_number:
         type: integer
-      text:
-        items:
-          type: string
-        type: array
     type: object
   request.AddSongRequest:
     properties:
@@ -186,8 +184,12 @@ paths:
       - Songs
   /api/songs/{id}/text:
     get:
-      description: Prints text with couplet number
+      description: Prints text with verse number
       parameters:
+      - description: Verse number
+        in: query
+        name: verse
+        type: string
       - description: Song ID
         in: path
         name: id
@@ -199,7 +201,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.Text'
+            items:
+              $ref: '#/definitions/model.Text'
+            type: array
         "400":
           description: Bad Request
           schema:
@@ -216,7 +220,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/rest.APIError'
-      summary: Get Text
+      summary: Get Song Text
       tags:
       - Songs
   /healthz:

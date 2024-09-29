@@ -220,15 +220,21 @@ const docTemplate = `{
         },
         "/api/songs/{id}/text": {
             "get": {
-                "description": "Prints text with couplet number",
+                "description": "Prints text with verse number",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Songs"
                 ],
-                "summary": "Get Text",
+                "summary": "Get Song Text",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Verse number",
+                        "name": "verse",
+                        "in": "query"
+                    },
                     {
                         "type": "string",
                         "description": "Song ID",
@@ -241,7 +247,10 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.Text"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Text"
+                            }
                         }
                     },
                     "400": {
@@ -321,14 +330,11 @@ const docTemplate = `{
         "model.Text": {
             "type": "object",
             "properties": {
-                "couplet_number": {
-                    "type": "integer"
+                "verse": {
+                    "type": "string"
                 },
-                "text": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                "verse_number": {
+                    "type": "integer"
                 }
             }
         },
