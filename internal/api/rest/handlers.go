@@ -2,12 +2,14 @@ package rest
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/meraiku/music_lib/internal/api/rest/request"
 	"github.com/meraiku/music_lib/internal/converter"
+	"github.com/meraiku/music_lib/internal/lib/fetcher"
 	"github.com/meraiku/music_lib/internal/model"
 	"github.com/meraiku/music_lib/internal/repo"
 )
@@ -22,11 +24,11 @@ func (i *Implementation) ServerStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 // @Summary		Get Songs
-// @Description	Prints List of songs
+// @Description	Prints List of songs from library.
 // @Tags			Songs
 // @Produce		json
 // @Param			page	query		int		false	"Page number. Default 1"
-// @Param			filter	query		string	false	"Filter By ... Default by 'song' name"
+// @Param			filter	query		string	false	"Filter By {}. Default 'song' name"
 // @Success		200		{array}		model.Song
 // @Failure		404		{object}	object
 // @Failure		500		{object}	APIError
@@ -43,6 +45,19 @@ func (i *Implementation) GetSongs(w http.ResponseWriter, r *http.Request) error 
 	p.Page, _ = strconv.Atoi(query.Get("page"))
 	p.Filter = query.Get("filter")
 
+	if p.Filter == "" {
+		p.Filter = "song"
+	}
+	if p.Page <= 0 {
+		p.Page = 1
+	}
+
+	if err := p.Validate(); err != nil {
+		return NewAPIError(http.StatusBadRequest, err)
+	}
+
+	fmt.Println(p.Page)
+
 	songList, err := i.musicService.GetSongs(r.Context(), &p)
 	if err != nil {
 		return err
@@ -53,13 +68,50 @@ func (i *Implementation) GetSongs(w http.ResponseWriter, r *http.Request) error 
 	return i.JSON(w, http.StatusOK, songList)
 }
 
+// @Summary		Get Song Text
+// @Description	Prints text with verse number
+// @Tags			Songs
+// @Produce		json
+// @Param			verse	query		string	false "Verse number"
+// @Param			id		path		string	true	"Song ID"
+// @Success		200		{array}		model.Text
+// @Failure		400		{object}	APIError
+// @Failure		404		{object}	object
+// @Failure		422		{object}	APIError
+// @Failure		500		{object}	APIError
+// @Router			/api/songs/{id}/text [get]
+func (i *Implementation) GetText(w http.ResponseWriter, r *http.Request) error {
+
+	i.log.DebugContext(r.Context(), "Handler started")
+
+	id := r.PathValue("id")
+
+	if err := uuid.Validate(id); err != nil {
+		return NewAPIError(http.StatusBadRequest, ErrInvalidID)
+	}
+
+	query := r.URL.Query()
+
+	verseNumber, _ := strconv.Atoi(query.Get("verse"))
+
+	text, err := i.musicService.GetText(r.Context(), id, verseNumber)
+	if err != nil {
+		return err
+	}
+
+	i.log.DebugContext(r.Context(), "Handler done")
+
+	return i.JSON(w, http.StatusOK, text)
+}
+
 // @Summary		Post Song
-// @Description	Add song to Library
+// @Description	Enriches song with additional inforamtion, then adds song to Library. If song inforamtion can't be enriched, error is shown
 // @Tags			Songs
 // @Accept			json
 // @Produce		json
-// @Param			song	body		request.AddSongRequest	true	"Add song"
+// @Param			song	body		request.AddSongRequest	true	"Band and Song names"
 // @Success		201		{object}	model.Song
+// @Failure		400		{object}	APIError
 // @Failure		404		{object}	object
 // @Failure		422		{object}	APIError
 // @Failure		500		{object}	APIError
@@ -83,6 +135,9 @@ func (i *Implementation) PostSong(w http.ResponseWriter, r *http.Request) error 
 
 	song, err := i.musicService.PostSong(r.Context(), converter.FromAddSongRequestToModel(&req))
 	if err != nil {
+		if errors.Is(err, fetcher.ErrNoData) {
+			return NewAPIError(http.StatusBadRequest, err)
+		}
 		return err
 	}
 
@@ -168,16 +223,4 @@ func (i *Implementation) UpdateSong(w http.ResponseWriter, r *http.Request) erro
 	i.log.DebugContext(r.Context(), "Handler done")
 
 	return i.JSON(w, http.StatusOK, song)
-}
-
-func (i *Implementation) GetText(w http.ResponseWriter, r *http.Request) error {
-
-	i.log.DebugContext(r.Context(), "Handler started")
-
-	// TODO Implement
-
-	i.log.DebugContext(r.Context(), "Handler done")
-
-	w.WriteHeader(http.StatusNotImplemented)
-	return nil
 }

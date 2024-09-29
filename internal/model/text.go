@@ -1,5 +1,6 @@
 package model
 
 type Text struct {
-	Text string `json:"text"`
+	VerseNumber int    `json:"verse_number"`
+	Verse       string `json:"verse"`
 }
