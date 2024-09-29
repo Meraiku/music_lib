@@ -13,13 +13,6 @@ func (s *service) GetSongs(ctx context.Context, params *model.Parameters) ([]mod
 
 	s.log.DebugContext(ctx, "Get Song OK")
 
-	if params.Filter == "" {
-		params.Filter = "song"
-	}
-	if params.Page == 0 {
-		params.Page = 1
-	}
-
 	songs, err := s.repo.GetSongs(ctx, params)
 	if err != nil {
 		return nil, err
