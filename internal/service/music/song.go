@@ -2,8 +2,10 @@ package music
 
 import (
 	"context"
+	"errors"
 
 	"github.com/mdobak/go-xerrors"
+	"github.com/meraiku/music_lib/internal/lib/fetcher"
 	"github.com/meraiku/music_lib/internal/model"
 )
 
@@ -32,8 +34,13 @@ func (s *service) PostSong(ctx context.Context, song *model.Song) (*model.Song, 
 
 	s.log.DebugContext(ctx, "Fetching Data from Info service")
 
-	err := FetchSongInfo(ctx, song)
+	f := fetcher.NewInfo()
+
+	err := f.BeginWithContext(ctx, song)
 	if err != nil {
+		if errors.Is(err, fetcher.ErrNoData) {
+			return nil, err
+		}
 		return nil, xerrors.WithStackTrace(err, -1)
 	}
 

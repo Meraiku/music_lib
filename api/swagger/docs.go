@@ -93,6 +93,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/model.Song"
                         }
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rest.APIError"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
