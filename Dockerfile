@@ -1,6 +1,6 @@
 FROM debian:stable
 
 COPY ./.bin/api ./bin/api
-COPY ./migrations ./migrations
+COPY ./sql/migrations ./sql/migrations
 
 CMD [ "/bin/api" ]

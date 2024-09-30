@@ -33,8 +33,6 @@ func (s *service) GetText(ctx context.Context, id string, verse int) ([]model.Te
 		return nil, err
 	}
 
-	s.log.DebugContext(ctx, "Got text from repo", slog.String("text", text))
-
 	out := paginateText(text)
 
 	if verse > len(out) || verse < 0 {

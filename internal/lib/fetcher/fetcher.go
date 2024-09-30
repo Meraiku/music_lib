@@ -39,7 +39,7 @@ func (f *Fetcher) BeginWithContext(ctx context.Context, song *model.Song) error 
 
 	resp, err := getRequest(ctx, b, f)
 	if err != nil {
-		return err
+		return ErrInfoServiceUnavailable
 	}
 	defer resp.Body.Close()
 

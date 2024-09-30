@@ -52,7 +52,7 @@ func (s *serviceProvider) RestImpl() *rest.Implementation {
 func (s *serviceProvider) Repository() repo.MusicRepository {
 	if s.repo == nil {
 		var err error
-		s.repo, err = postgre.New()
+		s.repo, err = postgre.New(s.Logger())
 		if err != nil {
 			log.Fatalf("error connecting db: %s", err)
 		}

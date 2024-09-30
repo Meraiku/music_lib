@@ -1,4 +1,4 @@
-package migrations
+package sql
 
 import (
 	"database/sql"
@@ -7,7 +7,7 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
-//go:embed *.sql
+//go:embed migrations/*.sql
 var sqlMigrations embed.FS
 
 func Songs(db *sql.DB) error {
@@ -18,7 +18,7 @@ func Songs(db *sql.DB) error {
 		return err
 	}
 
-	if err := goose.Up(db, "."); err != nil {
+	if err := goose.Up(db, "migrations"); err != nil {
 		return err
 	}
 

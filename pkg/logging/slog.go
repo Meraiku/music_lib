@@ -8,14 +8,32 @@ import (
 	slogmulti "github.com/samber/slog-multi"
 )
 
-func initSlog(_ string) *slog.Logger {
+func initSlog(env string) *slog.Logger {
 
 	f := openLoggingFile()
 
-	h := slogmulti.Fanout(
-		slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug}),
-		slog.NewJSONHandler(f, &slog.HandlerOptions{Level: slog.LevelInfo, ReplaceAttr: replaceAttr}),
-	)
+	var h slog.Handler
+
+	if env == "" {
+		env = "dev"
+	}
+
+	switch env {
+	case "dev":
+		h = slogmulti.Fanout(
+			slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug}),
+			slog.NewJSONHandler(f, &slog.HandlerOptions{Level: slog.LevelInfo, ReplaceAttr: replaceAttr}),
+		)
+	case "prod":
+		// TODO Logstash Fanout
+
+		h = slogmulti.Fanout(
+			slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}),
+			slog.NewJSONHandler(f, &slog.HandlerOptions{Level: slog.LevelInfo, ReplaceAttr: replaceAttr}),
+		)
+	default:
+		h = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
+	}
 
 	l := slog.New(NewHandlerMiddleware(h))
 

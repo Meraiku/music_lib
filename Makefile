@@ -12,7 +12,7 @@ swagger:
 	@swag init -g cmd/api/main.go -o api/swagger
 
 docker:build
-	@sudo docker compose up --build
+	@docker compose up --build
 
 
 build_test:

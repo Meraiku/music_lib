@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,6 +23,11 @@ func (db *postgre) GetSongs(ctx context.Context, params *model.Parameters) ([]mo
 
 	query := fmt.Sprintf(`SELECT * FROM songs ORDER BY ? %s LIMIT ? OFFSET ? `, params.Order)
 
+	db.log.DebugContext(ctx,
+		"Getting songs list",
+		slog.String("query", query),
+	)
+
 	limit := 20
 	offset := limit * (params.Page - 1)
 	songs := make([]repo.Song, 0, limit)
@@ -35,12 +41,23 @@ func (db *postgre) GetSongs(ctx context.Context, params *model.Parameters) ([]mo
 		out[i] = *repo.ToSongFromRepo(&songs[i])
 	}
 
+	db.log.DebugContext(ctx,
+		"Got songs list",
+		slog.Int("song_number", len(songs)),
+	)
+
 	return out, nil
 }
 
 func (db *postgre) GetTextByID(ctx context.Context, id string) (string, error) {
 
 	query := `SELECT (lirics) FROM songs WHERE id = ?`
+
+	db.log.DebugContext(ctx,
+		"Getting song lirics",
+		slog.String("id", id),
+		slog.String("query", query),
+	)
 
 	var text string
 
@@ -50,6 +67,12 @@ func (db *postgre) GetTextByID(ctx context.Context, id string) (string, error) {
 		}
 		return "", xerrors.WithStackTrace(err, 0)
 	}
+
+	db.log.DebugContext(ctx,
+		"Got song lirics",
+		slog.String("id", id),
+		slog.String("lirics", text),
+	)
 
 	return text, nil
 }
@@ -66,6 +89,13 @@ func (db *postgre) AddSong(ctx context.Context, song *model.Song) (*model.Song, 
 	s.CreatedAt = time.Now()
 	s.UpdatedAt = time.Now()
 
+	db.log.DebugContext(ctx,
+		"Adding new song",
+		slog.String("id", song.ID),
+		slog.String("query", query),
+		slog.Any("song_model", song),
+	)
+
 	err := db.db.NewRaw(query,
 		s.ID,
 		s.Band,
@@ -80,18 +110,36 @@ func (db *postgre) AddSong(ctx context.Context, song *model.Song) (*model.Song, 
 		return nil, xerrors.WithStackTrace(err, 0)
 	}
 
+	db.log.DebugContext(ctx,
+		"Song added",
+		slog.String("id", song.ID),
+	)
+
 	return repo.ToSongFromRepo(s), nil
 }
 
 func (db *postgre) DeleteSong(ctx context.Context, id string) error {
 
-	_, err := db.db.NewRaw("DELETE FROM songs WHERE id = ?", id).Exec(ctx)
+	query := "DELETE FROM songs WHERE id = ?"
+
+	db.log.DebugContext(ctx,
+		"Deleting Song",
+		slog.String("song_id", id),
+		slog.String("query", query),
+	)
+
+	_, err := db.db.NewRaw(query, id).Exec(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
 		}
 		return xerrors.WithStackTrace(err, 0)
 	}
+
+	db.log.DebugContext(ctx,
+		"Song deleted",
+		slog.String("song_id", id),
+	)
 
 	return nil
 }
@@ -112,6 +160,13 @@ func (db *postgre) UpdateSong(ctx context.Context, song *model.Update) (*model.S
 	args := upd.Values()
 	args = append(args, u.ID)
 
+	db.log.DebugContext(ctx,
+		"Updating song information",
+		slog.String("id", song.ID),
+		slog.String("query", query),
+		slog.Any("args", args),
+	)
+
 	if err := db.db.NewRaw(query, args...).Scan(ctx, &s); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, repo.ErrSongIsNotExist
@@ -119,5 +174,12 @@ func (db *postgre) UpdateSong(ctx context.Context, song *model.Update) (*model.S
 
 		return nil, xerrors.WithStackTrace(err, 0)
 	}
+
+	db.log.DebugContext(ctx,
+		"Song updated",
+		slog.String("song_id", song.ID),
+		slog.Any("song_model", s),
+	)
+
 	return repo.ToSongFromRepo(&s), nil
 }
