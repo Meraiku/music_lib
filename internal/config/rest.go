@@ -10,7 +10,7 @@ type RESTConfig struct {
 	port string
 }
 
-func (cfg *RESTConfig) Address() string {
+func (cfg RESTConfig) Address() string {
 	return net.JoinHostPort(cfg.host, cfg.port)
 }
 

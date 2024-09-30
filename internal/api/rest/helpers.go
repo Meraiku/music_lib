@@ -1,11 +1,12 @@
 package rest
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/goccy/go-json"
 )
 
 func (i *Implementation) JSON(w http.ResponseWriter, code int, payload any) error {
@@ -21,25 +22,13 @@ func (i *Implementation) JSON(w http.ResponseWriter, code int, payload any) erro
 	return err
 }
 
-func (i *Implementation) ErrorJSON(w http.ResponseWriter, code int, msg string) {
-	type ErrMsg struct {
-		Err string `json:"error"`
-	}
-
-	resp := &ErrMsg{
-		Err: msg,
-	}
-
-	i.JSON(w, code, resp)
-}
-
 func decodeIntoStruct(r *http.Request, v any) error {
 	decoder := json.NewDecoder(r.Body)
 
-	err := decoder.Decode(v)
+	err := decoder.Decode(&v)
 	if err != nil {
 		if errors.Is(err, io.EOF) {
-			return ErrNoBody
+			return InvalidJSON()
 		}
 		return fmt.Errorf("error decoding parameters: %s", err)
 	}

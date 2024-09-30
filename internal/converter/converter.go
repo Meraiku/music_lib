@@ -18,8 +18,10 @@ func FromPatchRequestToModel(req *api.PatchRequest, id string) *model.Update {
 	var date *time.Time
 
 	if req.ReleaseDate != nil {
-		rd, _ := time.Parse("02.01.2006", *req.ReleaseDate)
-		date = &rd
+		rd, err := time.Parse("02.01.2006", *req.ReleaseDate)
+		if err == nil {
+			date = &rd
+		}
 	}
 
 	return &model.Update{
@@ -49,6 +51,19 @@ func FromSongsToApiSongs(s []model.Song) []api.Song {
 	for i, song := range s {
 		apiSong := FromSongToApi(&song)
 		out[i] = *apiSong
+	}
+
+	return out
+}
+
+func FromTextToApi(t []model.Text) []api.Text {
+	out := make([]api.Text, len(t))
+
+	for i, text := range t {
+		out[i] = api.Text{
+			VerseNumber: text.VerseNumber,
+			Verse:       text.Verse,
+		}
 	}
 
 	return out

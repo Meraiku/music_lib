@@ -80,7 +80,7 @@ const docTemplate = `{
                 "tags": [
                     "Songs"
                 ],
-                "summary": "Post Song",
+                "summary": "Upload Song To Library",
                 "parameters": [
                     {
                         "description": "Band and Song names",
@@ -161,7 +161,7 @@ const docTemplate = `{
                 }
             },
             "patch": {
-                "description": "Updates song information in Library",
+                "description": "Updates song information in Library. If without body 204 code returned with no changes done",
                 "consumes": [
                     "application/json"
                 ],
@@ -195,6 +195,9 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/api.Song"
                         }
+                    },
+                    "204": {
+                        "description": "No Content"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -236,16 +239,16 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Verse number",
-                        "name": "verse",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
                         "description": "Song ID",
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Verse number. If not provided prints full lirics",
+                        "name": "verse",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -254,7 +257,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.Text"
+                                "$ref": "#/definitions/api.Text"
                             }
                         }
                     },
@@ -379,23 +382,29 @@ const docTemplate = `{
                 }
             }
         },
-        "model.Text": {
+        "api.Text": {
             "type": "object",
             "properties": {
                 "verse": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Never gonna give you up\n"
                 },
                 "verse_number": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },
         "rest.APIError": {
             "type": "object",
             "properties": {
-                "msg": {},
+                "msg": {
+                    "type": "string",
+                    "example": "invalid ID"
+                },
                 "status_code": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 400
                 }
             }
         }

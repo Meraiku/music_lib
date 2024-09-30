@@ -13,8 +13,8 @@ var (
 )
 
 type APIError struct {
-	StatusCode int `json:"status_code"`
-	Msg        any `json:"msg"`
+	StatusCode int `json:"status_code" example:"400"`
+	Msg        any `json:"msg" swaggertype:"string" example:"invalid ID"`
 }
 
 func (e APIError) Error() string {

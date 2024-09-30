@@ -85,17 +85,23 @@ definitions:
           You set my soul alight
         type: string
     type: object
-  model.Text:
+  api.Text:
     properties:
       verse:
+        example: |
+          Never gonna give you up
         type: string
       verse_number:
+        example: 1
         type: integer
     type: object
   rest.APIError:
     properties:
-      msg: {}
+      msg:
+        example: invalid ID
+        type: string
       status_code:
+        example: 400
         type: integer
     type: object
 info:
@@ -174,7 +180,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/rest.APIError'
-      summary: Post Song
+      summary: Upload Song To Library
       tags:
       - Songs
   /api/songs/{id}:
@@ -203,7 +209,8 @@ paths:
     patch:
       consumes:
       - application/json
-      description: Updates song information in Library
+      description: Updates song information in Library. If without body 204 code returned
+        with no changes done
       parameters:
       - description: Song ID
         in: path
@@ -222,6 +229,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/api.Song'
+        "204":
+          description: No Content
         "400":
           description: Bad Request
           schema:
@@ -245,14 +254,14 @@ paths:
     get:
       description: Prints text with verse number
       parameters:
-      - description: Verse number
-        in: query
-        name: verse
-        type: string
       - description: Song ID
         in: path
         name: id
         required: true
+        type: string
+      - description: Verse number. If not provided prints full lirics
+        in: query
+        name: verse
         type: string
       produces:
       - application/json
@@ -261,7 +270,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.Text'
+              $ref: '#/definitions/api.Text'
             type: array
         "400":
           description: Bad Request

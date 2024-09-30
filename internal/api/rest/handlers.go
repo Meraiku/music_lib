@@ -75,9 +75,9 @@ func (i *Implementation) GetSongs(w http.ResponseWriter, r *http.Request) error 
 // @Description	Prints text with verse number
 // @Tags			Songs
 // @Produce		json
-// @Param			verse	query		string	false	"Verse number"
 // @Param			id		path		string	true	"Song ID"
-// @Success		200		{array}		model.Text
+// @Param			verse	query		string	false	"Verse number. If not provided prints full lirics"
+// @Success		200		{array}		api.Text
 // @Failure		400		{object}	APIError
 // @Failure		404		{object}	object
 // @Failure		422		{object}	APIError
@@ -99,15 +99,18 @@ func (i *Implementation) GetText(w http.ResponseWriter, r *http.Request) error {
 
 	text, err := i.musicService.GetText(r.Context(), id, verseNumber)
 	if err != nil {
+		if errors.Is(err, repo.ErrSongIsNotExist) {
+			return NewAPIError(http.StatusBadRequest, err)
+		}
 		return err
 	}
 
 	i.log.DebugContext(r.Context(), "Handler done")
 
-	return i.JSON(w, http.StatusOK, text)
+	return i.JSON(w, http.StatusOK, converter.FromTextToApi(text))
 }
 
-// @Summary		Post Song
+// @Summary		Upload Song To Library
 // @Description	Enriches song with additional inforamtion, then adds song to Library. If song inforamtion can't be enriched, error is shown
 // @Tags			Songs
 // @Accept			json
@@ -124,11 +127,7 @@ func (i *Implementation) PostSong(w http.ResponseWriter, r *http.Request) error 
 	i.log.DebugContext(r.Context(), "Handler started")
 
 	var req api.AddSongRequest
-
 	if err := decodeIntoStruct(r, &req); err != nil {
-		if errors.Is(err, ErrNoBody) {
-			return InvalidJSON()
-		}
 		return err
 	}
 
@@ -178,17 +177,18 @@ func (i *Implementation) DeleteSong(w http.ResponseWriter, r *http.Request) erro
 }
 
 // @Summary		Update Song Info
-// @Description	Updates song information in Library
+// @Description	Updates song information in Library. If without body 204 code returned with no changes done
 // @Tags			Songs
 // @Accept			json
 // @Produce		json
 // @Param			id		path		string				true	"Song ID"
 // @Param			group	body		api.PatchRequest	false	"Change song info"
 // @Success		200		{object}	api.Song
-// @Failure		400		{object}	APIError
-// @Failure		404		{object}	object
-// @Failure		422		{object}	APIError
-// @Failure		500		{object}	APIError
+// @Success		204
+// @Failure		400	{object}	APIError
+// @Failure		404	{object}	object
+// @Failure		422	{object}	APIError
+// @Failure		500	{object}	APIError
 // @Router			/api/songs/{id} [patch]
 func (i *Implementation) UpdateSong(w http.ResponseWriter, r *http.Request) error {
 
@@ -197,10 +197,8 @@ func (i *Implementation) UpdateSong(w http.ResponseWriter, r *http.Request) erro
 	var req api.PatchRequest
 
 	if err := decodeIntoStruct(r, &req); err != nil {
-		if errors.Is(err, ErrNoBody) {
-			return InvalidJSON()
-		}
-		return err
+		w.WriteHeader(http.StatusNoContent)
+		return nil
 	}
 
 	id := r.PathValue("id")

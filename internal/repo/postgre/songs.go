@@ -93,7 +93,6 @@ func (db *postgre) AddSong(ctx context.Context, song *model.Song) (*model.Song, 
 		"Adding new song",
 		slog.String("id", song.ID),
 		slog.String("query", query),
-		slog.Any("song_model", song),
 	)
 
 	err := db.db.NewRaw(query,
@@ -164,7 +163,6 @@ func (db *postgre) UpdateSong(ctx context.Context, song *model.Update) (*model.S
 		"Updating song information",
 		slog.String("id", song.ID),
 		slog.String("query", query),
-		slog.Any("args", args),
 	)
 
 	if err := db.db.NewRaw(query, args...).Scan(ctx, &s); err != nil {
@@ -178,7 +176,6 @@ func (db *postgre) UpdateSong(ctx context.Context, song *model.Update) (*model.S
 	db.log.DebugContext(ctx,
 		"Song updated",
 		slog.String("song_id", song.ID),
-		slog.Any("song_model", s),
 	)
 
 	return repo.ToSongFromRepo(&s), nil
