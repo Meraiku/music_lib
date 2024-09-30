@@ -75,16 +75,21 @@ func (s *service) PostSong(ctx context.Context, song *model.Song) (*model.Song, 
 	return song, nil
 }
 
-func (s *service) DeleteSong(ctx context.Context, song *model.Song) error {
+func (s *service) DeleteSong(ctx context.Context, id string) error {
 
 	s.log.DebugContext(ctx, "Delete Song OK")
 
-	return s.repo.DeleteSong(ctx, song)
+	return s.repo.DeleteSong(ctx, id)
 }
 
-func (s *service) UpdateSong(ctx context.Context, song *model.Song) (*model.Song, error) {
+func (s *service) UpdateSong(ctx context.Context, song *model.Update) (*model.Song, error) {
 
 	s.log.DebugContext(ctx, "Update Song OK")
 
-	return s.repo.UpdateSong(ctx, song)
+	out, err := s.repo.UpdateSong(ctx, song)
+	if err != nil {
+		return nil, err
+	}
+
+	return out, nil
 }

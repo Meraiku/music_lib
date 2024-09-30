@@ -1,17 +1,88 @@
 definitions:
-  model.Song:
+  api.AddSongRequest:
     properties:
       group:
-        type: string
-      id:
-        type: string
-      link:
-        type: string
-      releaseDate:
+        example: Muse
         type: string
       song:
+        example: Supermassive Black Hole
+        type: string
+    type: object
+  api.PatchRequest:
+    properties:
+      group:
+        example: Rick Astley
+        type: string
+      link:
+        example: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+        type: string
+      releaseDate:
+        example: 24.07.1987
+        type: string
+      song:
+        example: Never Gonna Give You Up
         type: string
       text:
+        example: |-
+          We’re no strangers to love
+          You know the rules and so do I
+          A full commitment’s what I’m thinking of
+          You wouldn’t get this from any other guy
+
+          I just wanna tell you how I’m feeling
+          Gotta make you understand
+
+          Never gonna give you up
+          Never gonna let you down
+          Never gonna run around and desert you
+          Never gonna make you cry
+          Never gonna say goodbye
+          Never gonna tell a lie and hurt you
+
+          We’ve known each other for so long
+          Your heart’s been aching but you’re too shy to say it
+          Inside we both know what’s been going on
+          We know the game and we’re gonna play it
+
+          And if you ask me how I’m feeling
+          Don’t tell me you’re too blind to see
+
+          Never gonna give you up
+          Never gonna let you down
+          Never gonna run around and desert you
+          Never gonna make you cry
+          Never gonna say goodbye
+          Never gonna tell a lie and hurt you
+        type: string
+    type: object
+  api.Song:
+    properties:
+      group:
+        example: Muse
+        type: string
+      id:
+        example: uuid
+        type: string
+      link:
+        example: https://www.youtube.com/watch?v=Xsp3_a-PMTw
+        type: string
+      releaseDate:
+        example: 16.07.2006
+        type: string
+      song:
+        example: Supermassive Black Hole
+        type: string
+      text:
+        example: |-
+          oh baby, don't you know I suffer?
+          Ooh baby, can you hear me moan?
+          You caught me under false pretenses
+          How long before you let me go?
+
+          Ooh
+          You set my soul alight
+          Ooh
+          You set my soul alight
         type: string
     type: object
   model.Text:
@@ -20,22 +91,6 @@ definitions:
         type: string
       verse_number:
         type: integer
-    type: object
-  request.AddSongRequest:
-    properties:
-      group:
-        type: string
-      song:
-        type: string
-    type: object
-  request.ModifySongRequest:
-    properties:
-      group:
-        type: string
-      id:
-        type: string
-      song:
-        type: string
     type: object
   rest.APIError:
     properties:
@@ -50,15 +105,19 @@ info:
 paths:
   /api/songs:
     get:
-      description: Prints List of songs
+      description: Prints List of songs from library.
       parameters:
       - description: Page number. Default 1
         in: query
         name: page
         type: integer
-      - description: Filter By ... Default by 'song' name
+      - description: Filter By {}. Default by 'creation time'
         in: query
         name: filter
+        type: string
+      - description: Order By 'asc' or 'desc'. Default 'asc'
+        in: query
+        name: order
         type: string
       produces:
       - application/json
@@ -67,7 +126,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.Song'
+              $ref: '#/definitions/api.Song'
             type: array
         "404":
           description: Not Found
@@ -83,21 +142,22 @@ paths:
     post:
       consumes:
       - application/json
-      description: Add song to Library
+      description: Enriches song with additional inforamtion, then adds song to Library.
+        If song inforamtion can't be enriched, error is shown
       parameters:
-      - description: Add song
+      - description: Band and Song names
         in: body
         name: song
         required: true
         schema:
-          $ref: '#/definitions/request.AddSongRequest'
+          $ref: '#/definitions/api.AddSongRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/model.Song'
+            $ref: '#/definitions/api.Song'
         "400":
           description: Bad Request
           schema:
@@ -140,7 +200,7 @@ paths:
       summary: Delete Song
       tags:
       - Songs
-    put:
+    patch:
       consumes:
       - application/json
       description: Updates song information in Library
@@ -150,19 +210,18 @@ paths:
         name: id
         required: true
         type: string
-      - description: Modify song info
+      - description: Change song info
         in: body
-        name: song
-        required: true
+        name: group
         schema:
-          $ref: '#/definitions/request.ModifySongRequest'
+          $ref: '#/definitions/api.PatchRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.Song'
+            $ref: '#/definitions/api.Song'
         "400":
           description: Bad Request
           schema:
@@ -231,10 +290,12 @@ paths:
         "200":
           description: OK
           schema:
-            type: object
+            type: string
         "404":
           description: Not Found
           schema:
             type: object
-      summary: Check Server Availability
+      summary: Check API Availability
+      tags:
+      - Status
 swagger: "2.0"
