@@ -62,3 +62,7 @@ Down
 ```bash
 make down
 ```
+
+# TODO
+
+- Покрыть код тестами
