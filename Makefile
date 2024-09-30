@@ -21,6 +21,17 @@ docker:build
 stop:
 	@docker compose down
 
+test-unit:
+	@go test $(shell go list ./... | grep -v /tests) -coverprofile=coverage.out
+cover:
+	go tool cover -html=coverage.out
+test-integration:
+	go test -race tests/integration/*.go
+
+mocks:
+	@go install github.com/golang/mock/mockgen@v1.6.0
+	@mockgen -source=internal/repo/repo.go -destination=internal/repo/mocks/mock_repo.go
+
 
 build_test:
 	@go build -o ./.bin/info ./cmd/info

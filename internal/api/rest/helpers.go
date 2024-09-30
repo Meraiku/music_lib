@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/goccy/go-json"
+	"encoding/json"
 )
 
 func (i *Implementation) JSON(w http.ResponseWriter, code int, payload any) error {

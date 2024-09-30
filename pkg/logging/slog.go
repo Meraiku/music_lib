@@ -2,6 +2,7 @@ package logging
 
 import (
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 
@@ -9,8 +10,6 @@ import (
 )
 
 func initSlog(env string) *slog.Logger {
-
-	f := openLoggingFile()
 
 	var h slog.Handler
 
@@ -20,6 +19,7 @@ func initSlog(env string) *slog.Logger {
 
 	switch env {
 	case "dev":
+		f := openLoggingFile()
 		h = slogmulti.Fanout(
 			slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug}),
 			slog.NewJSONHandler(f, &slog.HandlerOptions{Level: slog.LevelInfo, ReplaceAttr: replaceAttr}),
@@ -27,10 +27,13 @@ func initSlog(env string) *slog.Logger {
 	case "prod":
 		// TODO Logstash Fanout
 
+		f := openLoggingFile()
 		h = slogmulti.Fanout(
 			slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}),
 			slog.NewJSONHandler(f, &slog.HandlerOptions{Level: slog.LevelInfo, ReplaceAttr: replaceAttr}),
 		)
+	case "testing":
+		h = slog.NewTextHandler(io.Discard, &slog.HandlerOptions{})
 	default:
 		h = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
 	}
