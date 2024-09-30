@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/meraiku/music_lib/internal/repo"
+	"github.com/meraiku/music_lib/sql/migrations"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
@@ -28,7 +29,7 @@ func New() (*postgre, error) {
 		return nil, err
 	}
 
-	if err := Songs(); err != nil {
+	if err := migrations.Songs(sqldb); err != nil {
 		return nil, err
 	}
 
