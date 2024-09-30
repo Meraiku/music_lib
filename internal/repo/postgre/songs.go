@@ -20,11 +20,13 @@ func (db *postgre) GetSongs(ctx context.Context, params *model.Parameters) ([]mo
 		params.Filter = "band"
 	}
 
+	query := fmt.Sprintf(`SELECT * FROM songs ORDER BY ? %s LIMIT ? OFFSET ? `, params.Order)
+
 	limit := 20
 	offset := limit * (params.Page - 1)
 	songs := make([]repo.Song, 0, limit)
 
-	if err := db.db.NewRaw("SELECT * FROM songs ORDER BY ? LIMIT ? OFFSET ?", bun.Ident(params.Filter), limit, offset).Scan(ctx, &songs); err != nil {
+	if err := db.db.NewRaw(query, bun.Ident(params.Filter), limit, offset).Scan(ctx, &songs); err != nil {
 		return nil, xerrors.WithStackTrace(err, 0)
 	}
 
@@ -109,9 +111,6 @@ func (db *postgre) UpdateSong(ctx context.Context, song *model.Update) (*model.S
 
 	args := upd.Values()
 	args = append(args, u.ID)
-
-	fmt.Println(query)
-	fmt.Println(args...)
 
 	if err := db.db.NewRaw(query, args...).Scan(ctx, &s); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

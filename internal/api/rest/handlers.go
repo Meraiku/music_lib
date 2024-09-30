@@ -7,20 +7,21 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
-	"github.com/meraiku/music_lib/internal/api/rest/request"
+	"github.com/meraiku/music_lib/internal/api"
 	"github.com/meraiku/music_lib/internal/converter"
 	"github.com/meraiku/music_lib/internal/lib/fetcher"
 	"github.com/meraiku/music_lib/internal/model"
 	"github.com/meraiku/music_lib/internal/repo"
 )
 
-// @Summary	Check Server Availability
+// @Summary	Check API Availability
+// @Tags		Status
 // @Produce	json
-// @Success	200	{object}	object
+// @Success	200	{string}	string	"OK"
 // @Failure	404	{object}	object
 // @Router		/healthz [get]
 func (i *Implementation) ServerStatus(w http.ResponseWriter, r *http.Request) {
-	i.JSON(w, http.StatusOK, struct{}{})
+	i.JSON(w, http.StatusOK, "OK")
 }
 
 // @Summary		Get Songs
@@ -28,8 +29,9 @@ func (i *Implementation) ServerStatus(w http.ResponseWriter, r *http.Request) {
 // @Tags			Songs
 // @Produce		json
 // @Param			page	query		int		false	"Page number. Default 1"
-// @Param			filter	query		string	false	"Filter By {}. Default 'song' name"
-// @Success		200		{array}		model.Song
+// @Param			filter	query		string	false	"Filter By {}. Default by 'creation time'"
+// @Param			order	query		string	false	"Order By 'asc' or 'desc'. Default 'asc'"
+// @Success		200		{array}		api.Song
 // @Failure		404		{object}	object
 // @Failure		500		{object}	APIError
 // @Router			/api/songs [get]
@@ -44,9 +46,10 @@ func (i *Implementation) GetSongs(w http.ResponseWriter, r *http.Request) error 
 
 	p.Page, _ = strconv.Atoi(query.Get("page"))
 	p.Filter = query.Get("filter")
+	p.Order = query.Get("order")
 
 	if p.Filter == "" {
-		p.Filter = "song"
+		p.Filter = "created_at"
 	}
 	if p.Page <= 0 {
 		p.Page = 1
@@ -65,14 +68,14 @@ func (i *Implementation) GetSongs(w http.ResponseWriter, r *http.Request) error 
 
 	i.log.DebugContext(r.Context(), "Handler done")
 
-	return i.JSON(w, http.StatusOK, songList)
+	return i.JSON(w, http.StatusOK, converter.FromSongsToApiSongs(songList))
 }
 
 // @Summary		Get Song Text
 // @Description	Prints text with verse number
 // @Tags			Songs
 // @Produce		json
-// @Param			verse	query		string	false "Verse number"
+// @Param			verse	query		string	false	"Verse number"
 // @Param			id		path		string	true	"Song ID"
 // @Success		200		{array}		model.Text
 // @Failure		400		{object}	APIError
@@ -109,8 +112,8 @@ func (i *Implementation) GetText(w http.ResponseWriter, r *http.Request) error {
 // @Tags			Songs
 // @Accept			json
 // @Produce		json
-// @Param			song	body		request.AddSongRequest	true	"Band and Song names"
-// @Success		201		{object}	model.Song
+// @Param			song	body		api.AddSongRequest	true	"Band and Song names"
+// @Success		201		{object}	api.Song
 // @Failure		400		{object}	APIError
 // @Failure		404		{object}	object
 // @Failure		422		{object}	APIError
@@ -120,7 +123,7 @@ func (i *Implementation) PostSong(w http.ResponseWriter, r *http.Request) error 
 
 	i.log.DebugContext(r.Context(), "Handler started")
 
-	var req request.AddSongRequest
+	var req api.AddSongRequest
 
 	if err := decodeIntoStruct(r, &req); err != nil {
 		if errors.Is(err, ErrNoBody) {
@@ -143,7 +146,7 @@ func (i *Implementation) PostSong(w http.ResponseWriter, r *http.Request) error 
 
 	i.log.DebugContext(r.Context(), "Handler done")
 
-	return i.JSON(w, http.StatusCreated, song)
+	return i.JSON(w, http.StatusCreated, converter.FromSongToApi(song))
 }
 
 // @Summary		Delete Song
@@ -179,9 +182,9 @@ func (i *Implementation) DeleteSong(w http.ResponseWriter, r *http.Request) erro
 // @Tags			Songs
 // @Accept			json
 // @Produce		json
-// @Param			id		path		string						true	"Song ID"
-// @Param			song	body		request.ModifySongRequest	true	"Modify song info"
-// @Success		200		{object}	model.Song
+// @Param			id		path		string				true	"Song ID"
+// @Param			group	body		api.PatchRequest	false	"Change song info"
+// @Success		200		{object}	api.Song
 // @Failure		400		{object}	APIError
 // @Failure		404		{object}	object
 // @Failure		422		{object}	APIError
@@ -191,7 +194,7 @@ func (i *Implementation) UpdateSong(w http.ResponseWriter, r *http.Request) erro
 
 	i.log.DebugContext(r.Context(), "Handler started")
 
-	var req request.PatchRequest
+	var req api.PatchRequest
 
 	if err := decodeIntoStruct(r, &req); err != nil {
 		if errors.Is(err, ErrNoBody) {
@@ -216,5 +219,5 @@ func (i *Implementation) UpdateSong(w http.ResponseWriter, r *http.Request) erro
 
 	i.log.DebugContext(r.Context(), "Handler done")
 
-	return i.JSON(w, http.StatusOK, song)
+	return i.JSON(w, http.StatusOK, converter.FromSongToApi(song))
 }

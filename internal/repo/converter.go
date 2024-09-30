@@ -27,6 +27,7 @@ func ToSongFromRepo(s *Song) *model.Song {
 }
 
 func FromUpdateToRepo(s *model.Update) *Update {
+
 	return &Update{
 		ID:          s.ID,
 		Band:        s.Group,

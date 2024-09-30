@@ -8,7 +8,7 @@
     "paths": {
         "/api/songs": {
             "get": {
-                "description": "Prints List of songs",
+                "description": "Prints List of songs from library.",
                 "produces": [
                     "application/json"
                 ],
@@ -25,8 +25,14 @@
                     },
                     {
                         "type": "string",
-                        "description": "Filter By ... Default by 'song' name",
+                        "description": "Filter By {}. Default by 'creation time'",
                         "name": "filter",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Order By 'asc' or 'desc'. Default 'asc'",
+                        "name": "order",
                         "in": "query"
                     }
                 ],
@@ -36,7 +42,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.Song"
+                                "$ref": "#/definitions/api.Song"
                             }
                         }
                     },
@@ -55,7 +61,7 @@
                 }
             },
             "post": {
-                "description": "Add song to Library",
+                "description": "Enriches song with additional inforamtion, then adds song to Library. If song inforamtion can't be enriched, error is shown",
                 "consumes": [
                     "application/json"
                 ],
@@ -68,12 +74,12 @@
                 "summary": "Post Song",
                 "parameters": [
                     {
-                        "description": "Add song",
+                        "description": "Band and Song names",
                         "name": "song",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.AddSongRequest"
+                            "$ref": "#/definitions/api.AddSongRequest"
                         }
                     }
                 ],
@@ -81,7 +87,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/model.Song"
+                            "$ref": "#/definitions/api.Song"
                         }
                     },
                     "400": {
@@ -112,69 +118,6 @@
             }
         },
         "/api/songs/{id}": {
-            "put": {
-                "description": "Updates song information in Library",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Songs"
-                ],
-                "summary": "Update Song Info",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Song ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Modify song info",
-                        "name": "song",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.ModifySongRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/model.Song"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/rest.APIError"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object"
-                        }
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "$ref": "#/definitions/rest.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/rest.APIError"
-                        }
-                    }
-                }
-            },
             "delete": {
                 "description": "Deletes song from Library",
                 "tags": [
@@ -198,6 +141,68 @@
                         "description": "Not Found",
                         "schema": {
                             "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rest.APIError"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Updates song information in Library",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Songs"
+                ],
+                "summary": "Update Song Info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Song ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Change song info",
+                        "name": "group",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/api.PatchRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Song"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rest.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/rest.APIError"
                         }
                     },
                     "500": {
@@ -276,12 +281,15 @@
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Check Server Availability",
+                "tags": [
+                    "Status"
+                ],
+                "summary": "Check API Availability",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
                         }
                     },
                     "404": {
@@ -295,26 +303,70 @@
         }
     },
     "definitions": {
-        "model.Song": {
+        "api.AddSongRequest": {
             "type": "object",
             "properties": {
                 "group": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "link": {
-                    "type": "string"
-                },
-                "releaseDate": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Muse"
                 },
                 "song": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Supermassive Black Hole"
+                }
+            }
+        },
+        "api.PatchRequest": {
+            "type": "object",
+            "properties": {
+                "group": {
+                    "type": "string",
+                    "example": "Rick Astley"
+                },
+                "link": {
+                    "type": "string",
+                    "example": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                },
+                "releaseDate": {
+                    "type": "string",
+                    "example": "24.07.1987"
+                },
+                "song": {
+                    "type": "string",
+                    "example": "Never Gonna Give You Up"
                 },
                 "text": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "We’re no strangers to love\nYou know the rules and so do I\nA full commitment’s what I’m thinking of\nYou wouldn’t get this from any other guy\n\nI just wanna tell you how I’m feeling\nGotta make you understand\n\nNever gonna give you up\nNever gonna let you down\nNever gonna run around and desert you\nNever gonna make you cry\nNever gonna say goodbye\nNever gonna tell a lie and hurt you\n\nWe’ve known each other for so long\nYour heart’s been aching but you’re too shy to say it\nInside we both know what’s been going on\nWe know the game and we’re gonna play it\n\nAnd if you ask me how I’m feeling\nDon’t tell me you’re too blind to see\n\nNever gonna give you up\nNever gonna let you down\nNever gonna run around and desert you\nNever gonna make you cry\nNever gonna say goodbye\nNever gonna tell a lie and hurt you"
+                }
+            }
+        },
+        "api.Song": {
+            "type": "object",
+            "properties": {
+                "group": {
+                    "type": "string",
+                    "example": "Muse"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "uuid"
+                },
+                "link": {
+                    "type": "string",
+                    "example": "https://www.youtube.com/watch?v=Xsp3_a-PMTw"
+                },
+                "releaseDate": {
+                    "type": "string",
+                    "example": "16.07.2006"
+                },
+                "song": {
+                    "type": "string",
+                    "example": "Supermassive Black Hole"
+                },
+                "text": {
+                    "type": "string",
+                    "example": "oh baby, don't you know I suffer?\nOoh baby, can you hear me moan?\nYou caught me under false pretenses\nHow long before you let me go?\n\nOoh\nYou set my soul alight\nOoh\nYou set my soul alight"
                 }
             }
         },
@@ -326,31 +378,6 @@
                 },
                 "verse_number": {
                     "type": "integer"
-                }
-            }
-        },
-        "request.AddSongRequest": {
-            "type": "object",
-            "properties": {
-                "group": {
-                    "type": "string"
-                },
-                "song": {
-                    "type": "string"
-                }
-            }
-        },
-        "request.ModifySongRequest": {
-            "type": "object",
-            "properties": {
-                "group": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "song": {
-                    "type": "string"
                 }
             }
         },

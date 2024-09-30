@@ -19,12 +19,12 @@ type Parameters struct {
 }
 
 type Update struct {
-	ID          string  `json:"id"`
-	Band        *string `json:"band"`
-	Song        *string `json:"song"`
-	ReleaseDate *string `json:"releaseDate"`
-	Lirics      *string `json:"lirics"`
-	Link        *string `json:"link"`
+	ID          string     `json:"id"`
+	Band        *string    `json:"band"`
+	Song        *string    `json:"song"`
+	ReleaseDate *time.Time `json:"releaseDate"`
+	Lirics      *string    `json:"lirics"`
+	Link        *string    `json:"link"`
 }
 
 func (u *Update) SQLUpdates() SQLUpdate {
