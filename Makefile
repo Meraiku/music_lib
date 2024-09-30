@@ -1,9 +1,12 @@
 include .env
 
+.ONESHELL:
+
 build:
 	@go build -o ./.bin/api ./cmd/api
 
 run:build
+	@echo "Swagger:		http://localhost:${PORT}/swagger/index.html"
 	@./.bin/api
 
 swagger:
@@ -12,7 +15,11 @@ swagger:
 	@swag init -g cmd/api/main.go -o api/swagger
 
 docker:build
-	@docker compose up --build
+	@docker compose up -d --build
+	@echo "Swagger:		http://localhost:${PORT}/swagger/index.html"
+
+stop:
+	@docker compose down
 
 
 build_test:
