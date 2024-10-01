@@ -66,3 +66,5 @@ make down
 # TODO
 
 - Покрыть код тестами
+    - Unit
+    - Integration

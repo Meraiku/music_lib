@@ -141,3 +141,90 @@ func TestGetTextError(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, texts)
 }
+
+func TestDeleteSong(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	repo := mock_repo.NewMockMusicRepository(ctrl)
+
+	ctx := context.Background()
+	id := uuid.NewString()
+
+	s := NewService(repo, logging.Init("testing"))
+
+	repo.EXPECT().DeleteSong(ctx, id).Return(nil).Times(1)
+	err := s.DeleteSong(ctx, id)
+
+	require.NoError(t, err)
+}
+
+func TestDeleteSongError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	repo := mock_repo.NewMockMusicRepository(ctrl)
+
+	ctx := context.Background()
+	id := uuid.NewString()
+
+	s := NewService(repo, logging.Init("testing"))
+
+	repo.EXPECT().DeleteSong(ctx, id).Return(errors.New("db in unavailable")).Times(1)
+	err := s.DeleteSong(ctx, id)
+
+	require.Error(t, err)
+}
+
+func TestUpdateSong(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	repo := mock_repo.NewMockMusicRepository(ctrl)
+
+	ctx := context.Background()
+
+	song := "Supermassive Black Holes"
+	id := uuid.NewString()
+
+	in := &model.Update{
+		ID:   id,
+		Song: &song,
+	}
+
+	expResp := &model.Song{
+		ID:          id,
+		Group:       "Muse",
+		Song:        song,
+		ReleaseDate: time.Now(),
+		Text:        "Ooh baby, don't you know I suffer?\nOoh baby, can you hear me moan?\nYou caught me under false pretenses\nHow long before you let me go?\n\nOoh\nYou set my soul alight\nOoh\nYou set my soul alight",
+		Link:        "https://www.youtube.com/watch?v=Xsp3_a-PMTw",
+	}
+
+	s := NewService(repo, logging.Init("testing"))
+
+	repo.EXPECT().UpdateSong(ctx, in).Return(expResp, nil).Times(1)
+	songs, err := s.UpdateSong(ctx, in)
+
+	require.NoError(t, err)
+	require.Equal(t, expResp.ID, in.ID)
+	require.Equal(t, expResp.Song, songs.Song)
+}
+
+func TestUpdateSongError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	repo := mock_repo.NewMockMusicRepository(ctrl)
+
+	ctx := context.Background()
+	id := uuid.NewString()
+
+	in := &model.Update{
+		ID: id,
+	}
+
+	s := NewService(repo, logging.Init("testing"))
+
+	repo.EXPECT().UpdateSong(ctx, in).Return(nil, errors.New("db in unavailable")).Times(1)
+	song, err := s.UpdateSong(ctx, in)
+
+	require.Error(t, err)
+	require.Nil(t, song)
+}

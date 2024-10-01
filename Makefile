@@ -29,7 +29,7 @@ test-integration:
 	go test -race tests/integration/*.go
 
 mocks:
-	@go install github.com/golang/mock/mockgen@v1.6.0
+	@go install go.uber.org/mock/mockgen@latest
 	@mockgen -source=internal/repo/repo.go -destination=internal/repo/mocks/mock_repo.go
 
 
