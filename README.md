@@ -68,3 +68,4 @@ make down
 - Покрыть код тестами
     - Unit
     - Integration
+- Настроить CI/CD 
