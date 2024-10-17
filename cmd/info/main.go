@@ -37,15 +37,15 @@ func handleInfo(w http.ResponseWriter, r *http.Request) {
 
 	if err := decodeIntoStruct(r, &req); err != nil {
 		if errors.Is(err, rest.ErrNoBody) {
-			JSON(w, http.StatusBadRequest, struct{}{})
+			JSON(w, http.StatusBadRequest, struct{}{}) //nolint:errcheck
 			return
 		}
-		JSON(w, http.StatusInternalServerError, struct{}{})
+		JSON(w, http.StatusInternalServerError, struct{}{}) //nolint:errcheck
 		return
 	}
 
 	if err := req.validate(); err != nil {
-		JSON(w, http.StatusBadRequest, struct{}{})
+		JSON(w, http.StatusBadRequest, struct{}{}) //nolint:errcheck
 		return
 	}
 
@@ -55,5 +55,5 @@ func handleInfo(w http.ResponseWriter, r *http.Request) {
 		Link:        "https://www.youtube.com/watch?v=Xsp3_a-PMTw",
 	}
 
-	JSON(w, http.StatusOK, resp)
+	JSON(w, http.StatusOK, resp) //nolint:errcheck
 }

@@ -49,3 +49,7 @@ down:
 	@go install github.com/pressly/goose/v3/cmd/goose@latest
 	@cd ./sql/migrations;
 	@goose postgres $(POSTGRES_DSN) down
+
+
+dsn:
+	@echo $(POSTGRES_DSN)

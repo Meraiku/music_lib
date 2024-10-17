@@ -12,6 +12,16 @@ services:
       - path: .env
         required: true
 
+  pgAdmin:
+    container_name: pgAdmin
+    image: dpage/pgadmin4
+    restart: always
+    ports:
+      - 5050:80
+    env_file:
+      - path: .env
+        required: true
+
   api:
     container_name: Music_Lib_API
     build: .

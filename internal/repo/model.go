@@ -4,8 +4,8 @@ import "time"
 
 type Song struct {
 	ID          string    `json:"id"`
-	Band        string    `json:"band"`
-	Song        string    `json:"song"`
+	Band        string    `json:"bands"`
+	Name        string    `json:"name"`
 	ReleaseDate time.Time `json:"releaseDate"`
 	Lirics      string    `json:"lirics"`
 	Link        string    `json:"link"`
@@ -20,7 +20,6 @@ type Parameters struct {
 
 type Update struct {
 	ID          string     `json:"id"`
-	Band        *string    `json:"band"`
 	Song        *string    `json:"song"`
 	ReleaseDate *time.Time `json:"releaseDate"`
 	Lirics      *string    `json:"lirics"`
@@ -29,9 +28,6 @@ type Update struct {
 
 func (u *Update) SQLUpdates() SQLUpdate {
 	var s SQLUpdate
-	if u.Band != nil {
-		s.add("band", *u.Band)
-	}
 	if u.Song != nil {
 		s.add("song", *u.Song)
 	}
