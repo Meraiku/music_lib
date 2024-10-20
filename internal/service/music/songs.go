@@ -53,9 +53,7 @@ func (s *service) PostSong(ctx context.Context, song *model.Song) (*model.Song, 
 
 	s.log.DebugContext(ctx, "Fetching Data from Info service")
 
-	f := fetcher.NewInfo()
-
-	err := f.BeginWithContext(ctx, song)
+	err := s.fetcher.FetchCtx(ctx, song)
 	if err != nil {
 		if errors.Is(err, fetcher.ErrNoData) {
 			return nil, err

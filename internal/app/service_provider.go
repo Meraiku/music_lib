@@ -6,6 +6,7 @@ import (
 
 	"github.com/meraiku/music_lib/internal/api/rest"
 	"github.com/meraiku/music_lib/internal/config"
+	"github.com/meraiku/music_lib/internal/lib/fetcher/info"
 	"github.com/meraiku/music_lib/internal/repo"
 	"github.com/meraiku/music_lib/internal/repo/postgre"
 	"github.com/meraiku/music_lib/internal/service"
@@ -63,7 +64,8 @@ func (s *serviceProvider) Repository() repo.MusicRepository {
 
 func (s *serviceProvider) MusicService() service.MusicService {
 	if s.musicService == nil {
-		s.musicService = music.NewService(s.Repository(), s.Logger())
+		f := info.New(os.Getenv("SERVICE_URL") + "/info")
+		s.musicService = music.NewService(s.Repository(), s.Logger(), f)
 	}
 
 	return s.musicService

@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/meraiku/music_lib/internal/model"
 	mock_repo "github.com/meraiku/music_lib/internal/repo/mocks"
+	"github.com/meraiku/music_lib/internal/service/music/fake"
 	"github.com/meraiku/music_lib/pkg/logging"
 	"github.com/stretchr/testify/require"
 )
@@ -32,7 +33,7 @@ func TestGetSongs(t *testing.T) {
 		},
 	}
 
-	s := NewService(repo, logging.Init("testing"))
+	s := NewService(repo, logging.Init("testing"), nil)
 
 	repo.EXPECT().GetSongs(ctx, params).Return(expResp, nil).Times(1)
 	songs, err := s.GetSongs(ctx, params)
@@ -49,7 +50,7 @@ func TestGetSongsError(t *testing.T) {
 	ctx := context.Background()
 	params := &model.Parameters{}
 
-	s := NewService(repo, logging.Init("testing"))
+	s := NewService(repo, logging.Init("testing"), nil)
 
 	repo.EXPECT().GetSongs(ctx, params).Return(nil, errors.New("db in unavailable")).Times(1)
 	songs, err := s.GetSongs(ctx, params)
@@ -62,7 +63,7 @@ func TestGetText(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	repo := mock_repo.NewMockMusicRepository(ctrl)
-	s := NewService(repo, logging.Init("testing"))
+	s := NewService(repo, logging.Init("testing"), nil)
 
 	ctx := context.Background()
 	id := uuid.NewString()
@@ -133,7 +134,7 @@ func TestGetTextError(t *testing.T) {
 	id := uuid.NewString()
 	verse := 0
 
-	s := NewService(repo, logging.Init("testing"))
+	s := NewService(repo, logging.Init("testing"), nil)
 
 	repo.EXPECT().GetTextByID(ctx, id).Return("", errors.New("db in unavailable")).Times(1)
 	texts, err := s.GetText(ctx, id, verse)
@@ -150,7 +151,7 @@ func TestDeleteSong(t *testing.T) {
 	ctx := context.Background()
 	id := uuid.NewString()
 
-	s := NewService(repo, logging.Init("testing"))
+	s := NewService(repo, logging.Init("testing"), nil)
 
 	repo.EXPECT().DeleteSong(ctx, id).Return(nil).Times(1)
 	err := s.DeleteSong(ctx, id)
@@ -166,7 +167,7 @@ func TestDeleteSongError(t *testing.T) {
 	ctx := context.Background()
 	id := uuid.NewString()
 
-	s := NewService(repo, logging.Init("testing"))
+	s := NewService(repo, logging.Init("testing"), nil)
 
 	repo.EXPECT().DeleteSong(ctx, id).Return(errors.New("db in unavailable")).Times(1)
 	err := s.DeleteSong(ctx, id)
@@ -198,7 +199,7 @@ func TestUpdateSong(t *testing.T) {
 		Link:        "https://www.youtube.com/watch?v=Xsp3_a-PMTw",
 	}
 
-	s := NewService(repo, logging.Init("testing"))
+	s := NewService(repo, logging.Init("testing"), nil)
 
 	repo.EXPECT().UpdateSong(ctx, in).Return(expResp, nil).Times(1)
 	songs, err := s.UpdateSong(ctx, in)
@@ -220,11 +221,67 @@ func TestUpdateSongError(t *testing.T) {
 		ID: id,
 	}
 
-	s := NewService(repo, logging.Init("testing"))
+	s := NewService(repo, logging.Init("testing"), nil)
 
 	repo.EXPECT().UpdateSong(ctx, in).Return(nil, errors.New("db in unavailable")).Times(1)
 	song, err := s.UpdateSong(ctx, in)
 
 	require.Error(t, err)
 	require.Nil(t, song)
+}
+
+func TestPostSong(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	repo := mock_repo.NewMockMusicRepository(ctrl)
+
+	ctx := context.Background()
+
+	id := uuid.New()
+
+	in := model.Song{
+		Song:  "Supermassive Black Holes",
+		Group: "Muse",
+	}
+
+	expResp := model.Song{
+		ID:          id.String(),
+		Song:        "Supermassive Black Holes",
+		Group:       "Muse",
+		Text:        "Ooh baby, don't you know I suffer?\nOoh baby, can you hear me moan?\nYou caught me under false pretenses\nHow long before you let me go?\n\nOoh\nYou set my soul alight\nOoh\nYou set my soul alight",
+		ReleaseDate: fake.ReleaseDate,
+		Link:        "https://www.youtube.com/watch?v=Xsp3_a-PMTw",
+	}
+
+	f := &fake.InfoFake{}
+
+	s := NewService(repo, logging.Init("testing"), f)
+
+	repo.EXPECT().AddSong(ctx, &in).Return(&expResp, nil).Times(1)
+	songs, err := s.PostSong(ctx, &in)
+
+	require.NoError(t, err)
+	require.Equal(t, &expResp, songs)
+}
+
+func TestPostSongInfoServiceError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	repo := mock_repo.NewMockMusicRepository(ctrl)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*500)
+	defer cancel()
+
+	in := model.Song{
+		Song:  "Supermassive Black Holes",
+		Group: "Muse",
+	}
+
+	f := &fake.InfoFake{}
+
+	s := NewService(repo, logging.Init("testing"), f)
+
+	_, err := s.PostSong(ctx, &in)
+
+	require.Error(t, err)
 }

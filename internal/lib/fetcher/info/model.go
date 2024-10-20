@@ -1,4 +1,4 @@
-package fetcher
+package info
 
 type InfoRequest struct {
 	Group string `json:"group"`
