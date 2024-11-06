@@ -1,13 +1,18 @@
 services:
 
   db:
-    container_name: database_sql
+    container_name: psql
     image: postgres
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     ports:
       - 5432:5432
     volumes:
-      - ~db:/var/lib/postresql/data
+      - ./data:/var/lib/postresql/data
     env_file:
       - path: .env
         required: true
@@ -23,11 +28,27 @@ services:
         required: true
 
   api:
-    container_name: Music_Lib_API
-    build: .
+    container_name: api
+    build:
+      context: .
+      dockerfile: Dockerfile.api
     restart: always
     ports: 
       - 9000:9000
+    depends_on:
+      db:
+        condition: service_healthy
     env_file:
       - path: .env
         required: true
+
+
+  info:
+    container_name: info
+    build:
+      context: .
+      dockerfile: Dockerfile.info
+    restart: always
+    ports: 
+      - 2000:2000
+

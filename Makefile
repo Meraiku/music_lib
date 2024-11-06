@@ -15,7 +15,7 @@ swagger:
 	@swag init -g cmd/api/main.go -o api/swagger
 
 docker:build
-	@docker compose up -d --build
+	@docker compose -f ./docker-compose.yaml up -d --build 
 	@echo "Swagger:		http://localhost:${PORT}/swagger/index.html"
 
 stop:

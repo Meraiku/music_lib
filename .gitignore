@@ -1,3 +1,4 @@
 .bin
 logs/all.log
 coverage.out
+data
