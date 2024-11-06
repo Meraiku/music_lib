@@ -87,10 +87,11 @@ func (db *postgre) AddSong(ctx context.Context, song *model.Song) (*model.Song, 
 		return nil, xerrors.WithStackTrace(err, 0)
 	}
 
-	getBandIDQuery := `SELECT (id) FROM bands WHERE name = ?`
+	getBandIDQuery := `SELECT id FROM bands WHERE name = ?`
 
 	s := repo.FromSongToRepo(song)
-	bandID := ""
+
+	var bandID string
 
 	db.log.DebugContext(ctx,
 		"Getting band id",
@@ -124,7 +125,7 @@ func (db *postgre) AddSong(ctx context.Context, song *model.Song) (*model.Song, 
 
 	query := `INSERT INTO songs 
 	(id, band_id, name, release_date, lirics, link, created_at, updated_at) 
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?`
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
 
 	s.ID = uuid.NewString()
 	s.CreatedAt = time.Now()
@@ -132,11 +133,11 @@ func (db *postgre) AddSong(ctx context.Context, song *model.Song) (*model.Song, 
 
 	db.log.DebugContext(ctx,
 		"Adding new song",
-		slog.String("id", song.ID),
+		slog.String("id", s.ID),
 		slog.String("query", query),
 	)
 
-	err = tx.NewRaw(query,
+	_, err = tx.NewRaw(query,
 		s.ID,
 		bandID,
 		s.Name,
@@ -145,7 +146,7 @@ func (db *postgre) AddSong(ctx context.Context, song *model.Song) (*model.Song, 
 		s.Link,
 		s.CreatedAt,
 		s.UpdatedAt,
-	).Scan(ctx, &s.ID)
+	).Exec(ctx)
 	if err != nil {
 		tx.Rollback()
 		return nil, xerrors.WithStackTrace(err, 0)
@@ -155,7 +156,7 @@ func (db *postgre) AddSong(ctx context.Context, song *model.Song) (*model.Song, 
 
 	db.log.DebugContext(ctx,
 		"Song added",
-		slog.String("id", song.ID),
+		slog.String("id", s.ID),
 	)
 
 	return repo.ToSongFromRepo(s), nil
